@@ -86,6 +86,6 @@ Stage-only examples:
 
 ## Notes
 
-- Skill folders under `skills/` (except `sdlc`) are **symlinks** into `agents/*/skills/*` so role docs stay the single source of truth. Git preserves them; on Windows enable Developer Mode or clone with symlink support.
-- Duplicate role copies of the same skill (e.g. `pr-review-expert` under multiple agents) are exposed once via the canonical owner symlink.
+- `skills/` is the Cursor plugin discovery root (unique skill names). Role trees under `agents/*/skills/` keep the original organization; when the same skill existed on multiple roles, the plugin exports one canonical copy.
 - Full contracts and schemas remain in `agents/**/AGENT.md`.
+- After editing a skill under `agents/`, mirror the change into `skills/<name>/` (or re-copy) so the slash command surface stays in sync.
