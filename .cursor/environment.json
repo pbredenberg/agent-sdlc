@@ -1,0 +1,4 @@
+{
+  "name": "agent-sdlc",
+  "install": "bash scripts/install-plugin-dev.sh"
+}

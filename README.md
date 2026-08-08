@@ -40,6 +40,23 @@ Reload Cursor (**Developer: Reload Window**). Confirm `/sdlc` appears when you t
 
 Install at **user** scope in Customize so every local project sees it.
 
+### Developing this plugin in its own repo
+
+Clone this repository and run the dev installer once (or let Cloud Agents run it via `.cursor/environment.json`):
+
+```bash
+git clone https://github.com/pbredenberg/agent-sdlc.git
+cd agent-sdlc
+bash scripts/install-plugin-dev.sh
+```
+
+That script:
+
+1. Links every skill under `.cursor/skills/` → `skills/` so **this repo** exposes `/sdlc` and specialist slash commands (Desktop + Cloud).
+2. Symlinks `~/.cursor/plugins/local/agent-sdlc` → this checkout so the full plugin manifest (`commands/`, `plugin-agents/`, etc.) loads on Desktop after reload.
+
+Re-run the script after adding a new skill directory under `skills/`.
+
 ### Option B — Team Marketplace (Desktop + Cloud)
 
 1. Cursor Dashboard → **Plugins** → **Team Marketplaces** → import this GitHub repo.
