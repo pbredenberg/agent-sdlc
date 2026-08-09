@@ -92,13 +92,9 @@ describe("validateDependencyGraph", () => {
     expect(validateDependencyGraph(plans)).toEqual({ ok: true });
   });
 
-  it("rejects unknown dependency", () => {
-    const plans = [makePlan(1, "01-a", ["missing"])];
-    const result = validateDependencyGraph(plans);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.reason).toBe("unknown_dependency");
-    }
+  it("accepts dependency on deleted non-pending plan id", () => {
+    const plans = [makePlan(2, "02-b", ["01-a"])];
+    expect(validateDependencyGraph(plans)).toEqual({ ok: true });
   });
 
   it("rejects cycles", () => {

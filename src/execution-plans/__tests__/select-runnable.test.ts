@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
 import { listPendingPlans } from "../list-plans.js";
-import { listDryRunBatches } from "../select-runnable.js";
+import { listDryRunBatches, selectRunnableBatch } from "../select-runnable.js";
 
 async function createFixture(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "exec-plans-"));
@@ -95,6 +95,27 @@ describe("selectRunnableBatch integration", () => {
     expect(third.ok).toBe(true);
     if (third.ok) {
       expect(third.batch[0].frontmatter.id).toBe("04-integration");
+    }
+  });
+
+  it("selects plan when predecessor file was deleted", async () => {
+    const root = await createFixture();
+    const phaseDir = join(root, "docs/execution-plans/example-phase");
+    const foundationPath = join(phaseDir, "01-foundation.md");
+
+    const { unlink } = await import("node:fs/promises");
+    await unlink(foundationPath);
+
+    const result = await selectRunnableBatch({
+      repoRoot: root,
+      phase: "example-phase",
+      maxParallel: 1,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.batch).toHaveLength(1);
+      expect(result.batch[0].frontmatter.id).toBe("02-module-a");
     }
   });
 });

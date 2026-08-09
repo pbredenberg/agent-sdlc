@@ -1,5 +1,15 @@
 export { listPhases, listPendingPlans, parsePlanFileName } from "./list-plans.js";
 export {
+  countPendingByPhase,
+  formatCrossPhaseBlockMessage,
+  getCrossPhaseBlocks,
+  getRunnablePhases,
+  listPhasesForDrain,
+  loadPhaseManifest,
+  parsePhaseManifestYaml,
+} from "./phase-manifest.js";
+export type { CrossPhaseBlock, PhaseManifest } from "./phase-manifest.js";
+export {
   validateDependencyGraph,
   topologicalSort,
   getCompletedIds,
@@ -41,6 +51,7 @@ export {
 } from "./parse-args.js";
 export {
   EXECUTION_PLANS_DIR,
+  PHASES_MANIFEST_FILE,
   ROOT_PHASE,
   formatPhaseLabel,
   isRootPhase,

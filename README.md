@@ -256,7 +256,7 @@ agent-sdlc-drain --phase my-phase --max-parallel 3
 # Plans with no phase folder (files directly under docs/execution-plans/)
 agent-sdlc-drain --phase .
 
-# Every phase folder (root plans first if present), in sort order
+# Every active phase (uses docs/execution-plans/phases.yaml when present; else alphabetical)
 agent-sdlc-drain --all-phases
 agent-sdlc-drain --all-phases --dry-run
 ```

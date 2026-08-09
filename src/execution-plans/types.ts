@@ -15,7 +15,15 @@ export type PendingPlan = {
 
 export type SelectRunnableResult =
   | { ok: true; batch: PendingPlan[] }
-  | { ok: false; reason: "no_pending_plans" | "phase_missing" | "blocked_dependencies" | "cyclic_dependencies" };
+  | {
+      ok: false;
+      reason:
+        | "no_pending_plans"
+        | "phase_missing"
+        | "blocked_dependencies"
+        | "cyclic_dependencies";
+      details?: string;
+    };
 
 export type DispatchStatus =
   | "idle"

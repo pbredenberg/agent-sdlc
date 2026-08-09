@@ -2,24 +2,12 @@ import type { PendingPlan } from "./types.js";
 
 export type DependencyGraphResult =
   | { ok: true }
-  | { ok: false; reason: "cyclic_dependencies" | "unknown_dependency"; details: string };
+  | { ok: false; reason: "cyclic_dependencies"; details: string };
 
 export function validateDependencyGraph(plans: PendingPlan[]): DependencyGraphResult {
   const ids = new Set(plans.map((plan) => {
     return plan.frontmatter.id;
   }));
-
-  for (const plan of plans) {
-    for (const dep of plan.frontmatter.dependsOn) {
-      if (!ids.has(dep)) {
-        return {
-          ok: false,
-          reason: "unknown_dependency",
-          details: `Plan ${plan.frontmatter.id} depends on unknown id: ${dep}`,
-        };
-      }
-    }
-  }
 
   const visited = new Set<string>();
   const visiting = new Set<string>();
@@ -39,6 +27,9 @@ export function validateDependencyGraph(plans: PendingPlan[]): DependencyGraphRe
 
     if (plan) {
       for (const dep of plan.frontmatter.dependsOn) {
+        if (!ids.has(dep)) {
+          continue;
+        }
         if (!visit(dep)) {
           return false;
         }

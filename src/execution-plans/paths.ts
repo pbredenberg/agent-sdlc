@@ -1,6 +1,7 @@
 import { join } from "node:path";
 
 export const EXECUTION_PLANS_DIR = "docs/execution-plans";
+export const PHASES_MANIFEST_FILE = "phases.yaml";
 export const DISPATCH_STATE_DIR = ".agent-sdlc";
 export const DISPATCH_STATE_FILE = "plan-dispatch-state.json";
 
@@ -27,6 +28,10 @@ export function planRelativePath(phase: string, fileName: string): string {
     return `${EXECUTION_PLANS_DIR}/${fileName}`;
   }
   return `${EXECUTION_PLANS_DIR}/${phase}/${fileName}`;
+}
+
+export function phasesManifestPath(repoRoot: string): string {
+  return join(repoRoot, EXECUTION_PLANS_DIR, PHASES_MANIFEST_FILE);
 }
 
 export function dispatchStatePath(repoRoot: string): string {

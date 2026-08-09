@@ -39,13 +39,36 @@ parallel_group: null
 3. Commit: `exec-plan(<phase>): <title>` (use `exec-plan(.): <title>` for root plans)
 4. Delete plan file; update phase README index
 
+Deleted plan files count as **completed** dependencies for remaining plans in the same phase.
+
+## Cross-phase ordering (`phases.yaml`)
+
+Optional manifest at `docs/execution-plans/phases.yaml` controls `--all-phases` drain order. When absent, phases drain in alphabetical folder order (legacy behavior).
+
+```yaml
+active:
+  - composition-ir
+  - preview-editor
+  - export-pipeline
+  - hardening-qa
+
+depends:
+  preview-editor: [composition-ir]
+  export-pipeline: [composition-ir]
+  hardening-qa: [preview-editor, export-pipeline]
+```
+
+- `active` — phase folders included in `--all-phases` (omit archive folders).
+- `depends` — cross-phase prerequisites. A phase is drained when it has zero pending `NN-*.md` files.
+- Parallel siblings (same `depends` set) drain sequentially in unattended mode; use separate `--phase` terminals for true parallelism.
+
 ## CLI
 
 ```bash
 # after one-time: cd ~/src/agent-sdlc && npm install && npm link
 agent-sdlc-drain --phase <phase> [--max-parallel N] [--dry-run]
 agent-sdlc-drain --phase .                  # no phase folder
-agent-sdlc-drain --all-phases               # every phase, sort order
+agent-sdlc-drain --all-phases               # respects phases.yaml when present
 ```
 
 See `execution-plan-author` and `execution-plan-dispatcher` skills for full protocol.

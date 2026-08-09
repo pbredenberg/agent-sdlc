@@ -68,10 +68,11 @@ export async function selectRunnableBatch(
 
   const validation = validateDependencyGraph(pending);
   if (!validation.ok) {
-    if (validation.reason === "cyclic_dependencies") {
-      return { ok: false, reason: "cyclic_dependencies" };
-    }
-    return { ok: false, reason: "blocked_dependencies" };
+    return {
+      ok: false,
+      reason: "cyclic_dependencies",
+      details: validation.details,
+    };
   }
 
   const allIds = new Set(pending.map((plan) => {
@@ -92,7 +93,25 @@ export async function selectRunnableBatch(
   });
 
   if (runnable.length === 0) {
-    return { ok: false, reason: "blocked_dependencies" };
+    const waiting = pending
+      .map((plan) => {
+        const unsatisfied = plan.frontmatter.dependsOn.filter((dep) => {
+          return !completedIds.has(dep);
+        });
+        if (unsatisfied.length === 0) {
+          return null;
+        }
+        return `${plan.frontmatter.id} waiting on: ${unsatisfied.join(", ")}`;
+      })
+      .filter((line): line is string => {
+        return line !== null;
+      });
+
+    return {
+      ok: false,
+      reason: "blocked_dependencies",
+      details: waiting.length > 0 ? waiting.join("; ") : undefined,
+    };
   }
 
   const batch = selectParallelBatch(runnable, input.maxParallel);
@@ -118,10 +137,11 @@ export async function listDryRunBatches(
 
   const validation = validateDependencyGraph(pending);
   if (!validation.ok) {
-    if (validation.reason === "cyclic_dependencies") {
-      return [{ ok: false, reason: "cyclic_dependencies" }];
-    }
-    return [{ ok: false, reason: "blocked_dependencies" }];
+    return [{
+      ok: false,
+      reason: "cyclic_dependencies",
+      details: validation.details,
+    }];
   }
 
   while (pending.length > 0) {
@@ -143,7 +163,7 @@ export async function listDryRunBatches(
     });
 
     if (runnable.length === 0) {
-      results.push({ ok: false, reason: "blocked_dependencies" });
+      results.push({ ok: false, reason: "blocked_dependencies", details: "dry-run simulation blocked" });
       break;
     }
 

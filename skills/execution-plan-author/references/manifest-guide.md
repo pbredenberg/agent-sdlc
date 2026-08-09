@@ -114,6 +114,25 @@ Status values: `pending`, `in_progress`, `done` (removed from disk when done).
 ## Anti-patterns
 
 - **Circular deps** — `01-a` depends on `02-b` depends on `01-a` (invalid)
-- **Cross-phase deps** — plans in phase A depending on phase B (use separate phases + operator ordering instead)
+- **Cross-phase deps in plan frontmatter** — use `phases.yaml` + operator phase ordering instead
 - **Oversized plans** — one plan that spans multiple unrelated deliverables (split into smaller plans)
 - **Missing validation** — plan with no acceptance criteria or validation commands
+
+## Cross-phase ordering (`phases.yaml`)
+
+When a project has multiple phase folders with prerequisites, add `docs/execution-plans/phases.yaml`:
+
+```yaml
+active:
+  - foundation
+  - api
+  - ui
+  - integration
+
+depends:
+  api: [foundation]
+  ui: [foundation]
+  integration: [api, ui]
+```
+
+`--all-phases` drains only `active` phases, in dependency waves. A phase with pending plans is blocked until every phase listed in its `depends` entry has zero pending plans.

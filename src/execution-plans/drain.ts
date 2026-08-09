@@ -2,7 +2,15 @@ import { buildHandoff } from "./build-handoff.js";
 import { createDispatchState, writeDispatchState } from "./dispatch-state.js";
 import { runAcceptanceGate } from "./acceptance-gate.js";
 import { getHeadSha } from "./commit-gate.js";
-import { listPhases } from "./list-plans.js";
+import {
+  countPendingByPhase,
+  formatCrossPhaseBlockMessage,
+  getCrossPhaseBlocks,
+  getRunnablePhases,
+  listPhasesForDrain,
+  loadPhaseManifest,
+} from "./phase-manifest.js";
+import type { PhaseManifest } from "./phase-manifest.js";
 import { formatPhaseLabel } from "./paths.js";
 import { listDryRunBatches, selectRunnableBatch } from "./select-runnable.js";
 import type { DrainCliOptions, PendingPlan } from "./types.js";
@@ -48,6 +56,13 @@ export async function drainExecutionPlans(
     console.log(message);
   });
 
+  if (options.allPhases) {
+    const manifest = await loadPhaseManifest(options.cwd);
+    if (manifest !== null) {
+      return drainAllPhasesWave(options, deps, manifest, log);
+    }
+  }
+
   const phases = await resolvePhases(options);
   if (phases.length === 0) {
     log("No phases found under docs/execution-plans/");
@@ -84,6 +99,68 @@ export async function drainExecutionPlans(
   return EXIT_OK;
 }
 
+async function drainAllPhasesWave(
+  options: DrainCliOptions,
+  deps: DrainDeps,
+  manifest: PhaseManifest,
+  log: (message: string) => void,
+): Promise<number> {
+  log(
+    `Draining ${manifest.active.length} active phase(s) from phases.yaml: ${manifest.active.map(formatPhaseLabel).join(", ")}`,
+  );
+
+  let completed = 0;
+
+  while (true) {
+    const pendingByPhase = await countPendingByPhase(options.cwd, manifest.active);
+    const phasesWithPending = manifest.active.filter((phase) => {
+      return (pendingByPhase[phase] ?? 0) > 0;
+    });
+
+    if (phasesWithPending.length === 0) {
+      return EXIT_OK;
+    }
+
+    const runnable = getRunnablePhases(manifest, phasesWithPending, pendingByPhase);
+    if (runnable.length === 0) {
+      const blocks = getCrossPhaseBlocks(manifest, phasesWithPending, pendingByPhase);
+      log(formatCrossPhaseBlockMessage(blocks));
+      await writeDispatchState(
+        options.cwd,
+        createDispatchState({
+          phase: phasesWithPending[0],
+          planRelativePaths: [],
+          status: "blocked",
+          agentIds: [],
+          runIds: [],
+          message: "cross_phase_dependencies",
+        }),
+      );
+      return EXIT_STARTUP;
+    }
+
+    const phase = runnable[0];
+    const remainingBudget = remainingMaxPlans(options.maxPlans, completed);
+    if (remainingBudget === 0) {
+      log(`Reached --max-plans ${options.maxPlans}; stopping.`);
+      return EXIT_OK;
+    }
+
+    const phaseOptions: PhaseDrainOptions = {
+      ...options,
+      phase,
+      maxPlans: remainingBudget,
+    };
+
+    const result = await drainOnePhase(phaseOptions, deps, log);
+    completed += result.completed;
+
+    if (result.code !== EXIT_OK) {
+      return result.code;
+    }
+  }
+}
+
 function remainingMaxPlans(
   maxPlans: number | null,
   completed: number,
@@ -96,7 +173,7 @@ function remainingMaxPlans(
 
 async function resolvePhases(options: DrainCliOptions): Promise<string[]> {
   if (options.allPhases) {
-    return listPhases(options.cwd);
+    return listPhasesForDrain(options.cwd);
   }
 
   return [options.phase as string];
@@ -131,7 +208,7 @@ async function drainOnePhase(
     });
 
     if (!next.ok) {
-      const code = await handleSelectFailure(options, next.reason, log);
+      const code = await handleSelectFailure(options, next.reason, log, next.details);
       return { code, completed };
     }
 
@@ -176,7 +253,7 @@ async function dryRunHandoffs(
 
   const first = batches[0];
   if (!first.ok) {
-    const code = await handleSelectFailure(options, first.reason, log);
+    const code = await handleSelectFailure(options, first.reason, log, first.details);
     return { code, completed: 0 };
   }
 
@@ -233,6 +310,7 @@ async function handleSelectFailure(
     | "blocked_dependencies"
     | "cyclic_dependencies",
   log: (message: string) => void,
+  details?: string,
 ): Promise<number> {
   if (reason === "no_pending_plans") {
     log(`Phase ${formatPhaseLabel(options.phase)}: no pending plans; drained.`);
@@ -261,6 +339,9 @@ async function handleSelectFailure(
       : "Blocked: no runnable plans; unsatisfied dependencies";
 
   log(message);
+  if (details) {
+    log(details);
+  }
   await writeDispatchState(
     options.cwd,
     createDispatchState({
