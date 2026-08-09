@@ -27,23 +27,75 @@ plugin-agents/         # Cursor agent personas (frontmatter + concise prompts)
 agents/                # Full role docs + role-organized skill copies
 ```
 
-## Install for all Desktop projects
+## Install
 
-### Option A — local plugin (fastest)
+Pick **one** path. Do not mix submodule + symlink setups — Cursor Cloud needs **real files** under `.cursor/skills/` (copies), not symlinks.
+
+| Path | Use when |
+| --- | --- |
+| [1. Desktop local plugin](#1-desktop--local-plugin-all-projects) | Solo Desktop; one install for every local project |
+| [2. Team Marketplace](#2-team-marketplace-desktop--cloud) | Team Desktop + Cloud Agents across repos |
+| [3. Copy skills into each app repo](#3-copy-skills-into-each-app-repo-cloud--solo) | Solo Cloud, no Team plan, or you want skills committed with the app |
+
+### 1. Desktop — local plugin (all projects)
 
 ```bash
 git clone https://github.com/pbredenberg/agent-sdlc.git ~/src/agent-sdlc
 mkdir -p ~/.cursor/plugins/local
-ln -s ~/src/agent-sdlc ~/.cursor/plugins/local/agent-sdlc
+ln -sfn ~/src/agent-sdlc ~/.cursor/plugins/local/agent-sdlc
 ```
 
-Reload Cursor (**Developer: Reload Window**). Confirm `/sdlc` appears when you type `/` in Agent chat.
+Then in Cursor: **Developer: Reload Window**. Confirm `/sdlc` appears when you type `/` in Agent chat. Install the plugin at **user** scope in Customize so every local project sees it.
 
-Install at **user** scope in Customize so every local project sees it.
+`~/.cursor/...` does **not** reach Cursor Cloud VMs. For Cloud, use path 2 or 3.
 
-### Developing this plugin in its own repo
+### 2. Team Marketplace (Desktop + Cloud)
 
-Clone this repository and run the dev installer once (or let Cloud Agents run it via `.cursor/environment.json`):
+1. Cursor Dashboard → **Plugins** → **Team Marketplaces** → import `https://github.com/pbredenberg/agent-sdlc`.
+2. Set the plugin to **Default On** or **Required**.
+3. Teammates get `/sdlc` in the IDE; Cloud Agents on team repos pick up the same distribution.
+
+### 3. Copy skills into each app repo (Cloud / solo)
+
+**Preferred** when you are not on Team Marketplace. Copy skills into the application repo and commit them so every clone (including Cloud) has `/sdlc`.
+
+From the **application repository** root:
+
+```bash
+TMP="$(mktemp -d)"
+git clone --depth 1 https://github.com/pbredenberg/agent-sdlc.git "$TMP/agent-sdlc"
+
+mkdir -p .cursor/skills .cursor/commands
+
+# Recommended: full kit (pipeline + specialists)
+cp -R "$TMP/agent-sdlc/skills/." .cursor/skills/
+cp -R "$TMP/agent-sdlc/commands/." .cursor/commands/
+
+rm -rf "$TMP"
+
+git add .cursor/skills .cursor/commands
+git commit -m "chore: vendor agent-sdlc skills for Cursor"
+```
+
+Minimum (pipeline command only — specialists will be missing unless you copy them too):
+
+```bash
+TMP="$(mktemp -d)"
+git clone --depth 1 https://github.com/pbredenberg/agent-sdlc.git "$TMP/agent-sdlc"
+
+mkdir -p .cursor/skills .cursor/commands
+cp -R "$TMP/agent-sdlc/skills/sdlc" .cursor/skills/sdlc
+cp "$TMP/agent-sdlc/commands/sdlc.md" .cursor/commands/sdlc.md
+
+rm -rf "$TMP"
+
+git add .cursor/skills .cursor/commands
+git commit -m "chore: vendor agent-sdlc /sdlc skill"
+```
+
+`AGENTS.md` at the app repo root is the agent runbook — `/sdlc` auto-generates and maintains it via `agents-md-author` (see [agents.md](https://agents.md/)).
+
+### Developing this plugin (this repository only)
 
 ```bash
 git clone https://github.com/pbredenberg/agent-sdlc.git
@@ -53,59 +105,63 @@ bash scripts/install-plugin-dev.sh
 
 That script:
 
-1. Copies every skill under `.cursor/skills/` from `skills/` so **this repo** exposes `/sdlc` and specialist slash commands (Desktop + Cloud). Real files are required — symlinks are not reliably discovered by Cloud Agents.
-2. Copies `commands/sdlc.md` to `.cursor/commands/sdlc.md` for workspace slash-command discovery.
-3. Symlinks `~/.cursor/plugins/local/agent-sdlc` → this checkout so the full plugin manifest (`commands/`, `plugin-agents/`, etc.) loads on Desktop after reload.
+1. Copies every skill from `skills/` → `.cursor/skills/` (real files — required for Cloud Agents).
+2. Copies `commands/*.md` → `.cursor/commands/`.
+3. Symlinks `~/.cursor/plugins/local/agent-sdlc` → this checkout for Desktop after reload.
 
-Re-run the script after adding a new skill directory under `skills/`.
+Re-run after adding a skill under `skills/`. Cloud Agents can also run it via `.cursor/environment.json`.
 
-### Option B — Team Marketplace (Desktop + Cloud)
+## Updating
 
-1. Cursor Dashboard → **Plugins** → **Team Marketplaces** → import this GitHub repo.
-2. Set the plugin to **Default On** or **Required** for your team.
-3. Teammates get `/sdlc` in the IDE; Cloud Agents on team repos pick up the same plugin distribution.
+Use the same path you installed with.
 
-User-only `~/.cursor/...` paths do **not** reach Cursor Cloud VMs. Use a Team Marketplace (or commit skills into each repo) for Cloud.
-
-## Install for Cursor Cloud on every project
-
-| Approach | When to use |
-| --- | --- |
-| **Team Marketplace** Required / Default On | Best for all team Cloud Agent runs |
-| **Commit this plugin into each app repo** | Solo / no Team plan — add as submodule or vendored `.cursor/` skills |
-| **AGENTS.md** | Agent runbook at repo root — `/sdlc` auto-generates and maintains it via `agents-md-author`; see [agents.md](https://agents.md/) |
-
-### Solo / per-repo fallback
+### Desktop local plugin
 
 ```bash
-# from an application repository
-mkdir -p .cursor/skills
-git submodule add https://github.com/pbredenberg/agent-sdlc.git vendor/agent-sdlc
-ln -s ../../vendor/agent-sdlc/skills/sdlc .cursor/skills/sdlc
-# optionally link other skills the same way
-```
-
-Or copy `skills/sdlc` (and any specialists you need) into `.cursor/skills/` and commit them so Cloud clones include them.
-
-## Updating installations in other repos
-
-After this repository changes (new skills, `/sdlc` updates, plugin layout), refresh each install method as follows. Pick the path that matches how you installed.
-
-### Local plugin (Option A symlink)
-
-The Desktop plugin is a symlink into your clone, so updating is a pull + reload:
-
-```bash
-# in the clone that ~/.cursor/plugins/local/agent-sdlc points at
-cd ~/src/agent-sdlc   # or your clone path
+cd ~/src/agent-sdlc   # path your ~/.cursor/plugins/local/agent-sdlc symlink points at
 git pull
 ```
 
-Then **Developer: Reload Window** in Cursor. Re-link only if you moved the clone or deleted the symlink; otherwise `git pull` is enough.
+Then **Developer: Reload Window**. Re-run the `ln -sfn` install only if you moved the clone.
 
-### In-repo plugin development (`install-plugin-dev.sh`)
+If you use the drain CLI globally, refresh the link after CLI changes:
 
-Workspace skills under `.cursor/skills/` are **copies**, not live links to `skills/`. After pulling this repo:
+```bash
+cd ~/src/agent-sdlc
+npm install
+npm link
+```
+
+### Team Marketplace
+
+1. Merge the desired changes on the branch Cursor imports for this plugin.
+2. Refresh under **Plugins → Team Marketplaces** if `/sdlc` looks stale.
+3. Reload the window if needed.
+
+No per-app-repo update is required for marketplace consumers.
+
+### Copied skills in an app repo
+
+Re-run the same copy commands, then commit. Example (full kit):
+
+```bash
+# from the application repository root
+TMP="$(mktemp -d)"
+git clone --depth 1 https://github.com/pbredenberg/agent-sdlc.git "$TMP/agent-sdlc"
+
+mkdir -p .cursor/skills .cursor/commands
+cp -R "$TMP/agent-sdlc/skills/." .cursor/skills/
+cp -R "$TMP/agent-sdlc/commands/." .cursor/commands/
+
+rm -rf "$TMP"
+
+git add .cursor/skills .cursor/commands
+git commit -m "chore: refresh agent-sdlc skills"
+```
+
+Copied trees do not update themselves — each bump is a deliberate re-copy + commit.
+
+### This repo (`install-plugin-dev.sh`)
 
 ```bash
 cd /path/to/agent-sdlc
@@ -113,52 +169,17 @@ git pull
 bash scripts/install-plugin-dev.sh
 ```
 
-Re-run the script whenever `skills/` or `commands/` change so Desktop and Cloud Agents see the new files. Reload Cursor after the script finishes.
-
-### Team Marketplace
-
-Marketplace installs track the imported GitHub repo for your team.
-
-1. Merge (or release) the desired changes on the branch Cursor imports for this plugin.
-2. Wait for teammates’ Cursor clients to refresh the marketplace plugin, or ask them to open **Plugins → Team Marketplaces**, confirm **agent-sdlc**, and reinstall/refresh if `/sdlc` or new skills do not appear.
-3. Reload the window if slash commands still look stale.
-
-No per-app-repo `git pull` is required for marketplace consumers.
-
-### Per-repo submodule
-
-From each application repository that vendors this plugin via submodule:
-
-```bash
-# from the application repository
-git submodule update --remote vendor/agent-sdlc
-git add vendor/agent-sdlc
-git commit -m "chore: bump agent-sdlc submodule"
-```
-
-If you symlinked `.cursor/skills/<name>` into the submodule, those links pick up the new tip automatically after the submodule bump. Commit the submodule pointer in the app repo so Cloud clones get the update.
-
-Adjust `vendor/agent-sdlc` if your submodule path differs.
-
-### Vendored / copied skills (no submodule)
-
-If you copied `skills/` (or selected skill folders) into another repo’s `.cursor/skills/`:
-
-1. Pull or download the desired revision of this repository.
-2. Re-copy the skill directories you use (at least `skills/sdlc`, plus any specialists you linked).
-3. Commit the updated files in the application repository.
-
-Copied trees do not update themselves — treat each bump as a deliberate vendor refresh.
+Reload Cursor after the script finishes.
 
 ### Quick reference
 
-| Install method | Update action | Reload Cursor? |
+| Install method | Update | Reload Cursor? |
 | --- | --- | --- |
-| Local plugin symlink | `git pull` in the clone | Yes |
-| `install-plugin-dev.sh` | `git pull` + re-run script | Yes |
-| Team Marketplace | Ship upstream; refresh plugin in Cursor if needed | Yes if commands stale |
-| Submodule in app repo | `git submodule update --remote` + commit pointer | Yes (Desktop); Cloud uses next clone/PR |
-| Copied `.cursor/skills` | Re-copy from upstream + commit | Yes (Desktop); Cloud uses next clone/PR |
+| Desktop local plugin | `git pull` in the clone (+ `npm link` if you use the drain CLI) | Yes |
+| Team Marketplace | Ship upstream; refresh plugin if needed | If commands look stale |
+| Copied `.cursor/skills` in an app | Re-copy from upstream + commit | Yes (Desktop); Cloud on next clone/PR |
+| `install-plugin-dev.sh` (this repo) | `git pull` + re-run script | Yes |
+| Global `agent-sdlc-drain` | `git pull` + `npm install` + `npm link` in the clone | No |
 
 ## Usage
 
@@ -204,23 +225,51 @@ Paste the handoff into a **new** Agent chat. The implementing agent commits with
 
 ### Drain (unattended CLI)
 
-From the agent-sdlc checkout (target repo as cwd):
+Plans live in the **app** repo under `docs/execution-plans/<phase>/`. The CLI ships with this repository.
+
+#### One-time global install
 
 ```bash
+git clone https://github.com/pbredenberg/agent-sdlc.git ~/src/agent-sdlc
+cd ~/src/agent-sdlc
+npm install
+npm link
+```
+
+That puts `agent-sdlc-drain` on your `PATH`. Re-run `npm install && npm link` after pulling CLI changes.
+
+#### Run from any app repo
+
+```bash
+export CURSOR_API_KEY=cursor_...
+cd /path/to/your-app
+
+# Preview handoffs
+agent-sdlc-drain --phase example-phase --dry-run
+
+# Drain sequentially
+agent-sdlc-drain --phase my-phase
+
+# Parallel batches when dependencies allow
+agent-sdlc-drain --phase my-phase --max-parallel 3
+```
+
+`--cwd` defaults to the current directory (the app). Override if needed: `agent-sdlc-drain --cwd /path/to/your-app --phase my-phase`.
+
+#### Without a global link
+
+From the agent-sdlc checkout:
+
+```bash
+cd ~/src/agent-sdlc
 npm install
 export CURSOR_API_KEY=cursor_...
 
-# Preview handoffs
-npm run execution-plans:drain -- --phase example-phase --dry-run
-
-# Drain sequentially
-npm run execution-plans:drain -- --phase my-phase
-
-# Parallel batches when dependencies allow
-npm run execution-plans:drain -- --phase my-phase --max-parallel 3
+npm run execution-plans:drain -- --cwd /path/to/your-app --phase my-phase --dry-run
+npm run execution-plans:drain -- --cwd /path/to/your-app --phase my-phase
 ```
 
-State file: `.agent-sdlc/plan-dispatch-state.json` (gitignored).
+State file (in the app repo): `.agent-sdlc/plan-dispatch-state.json` (gitignored).
 
 ## Notes
 

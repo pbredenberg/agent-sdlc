@@ -6,11 +6,13 @@ Agent runbook for the agent-sdlc Cursor plugin repository. Human docs live in [R
 
 - Install deps: `npm install`
 - Install plugin for dev in this repo: `bash scripts/install-plugin-dev.sh`
+- Link drain CLI globally: `npm link` (exposes `agent-sdlc-drain`)
 
 ## Dev commands
 
-- Drain execution plans (dry run): `npm run execution-plans:drain -- --phase <name> --dry-run`
-- Drain execution plans: `npm run execution-plans:drain -- --phase <name>` (requires `CURSOR_API_KEY`)
+- Drain execution plans (dry run): `agent-sdlc-drain --phase <name> --dry-run`
+- Drain execution plans: `agent-sdlc-drain --phase <name>` (requires `CURSOR_API_KEY`)
+- Drain without global link: `npm run execution-plans:drain -- --phase <name> [--cwd <app>]`
 
 ## Testing instructions
 

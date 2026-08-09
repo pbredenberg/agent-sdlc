@@ -1,6 +1,6 @@
 ---
 name: execution-plan-dispatch
-description: Dispatch numbered execution plans under docs/execution-plans/ one plan per fresh agent. Use for interactive plan advancement or unattended drain via execution-plans:drain.
+description: Dispatch numbered execution plans under docs/execution-plans/ one plan per fresh agent. Use for interactive plan advancement or unattended drain via agent-sdlc-drain.
 disable-model-invocation: true
 ---
 
@@ -18,11 +18,11 @@ You are **traffic control only**. Follow the **`execution-plan-dispatcher`** ski
 
 ## Unattended drain
 
-For hands-off execution, use the SDK CLI from the agent-sdlc plugin checkout:
+One-time: `cd ~/src/agent-sdlc && npm install && npm link`. Then from the app repo:
 
 ```bash
 export CURSOR_API_KEY=cursor_...
-npm run execution-plans:drain -- --phase <phase-name> [--dry-run] [--max-plans N] [--max-parallel N]
+agent-sdlc-drain --phase <phase-name> [--dry-run] [--max-plans N] [--max-parallel N]
 ```
 
 Requires `CURSOR_API_KEY`. Same one-plan-per-agent rule; state in `.agent-sdlc/plan-dispatch-state.json`.

@@ -67,23 +67,25 @@ When the operator says a plan is done:
 
 ## Unattended drain (SDK CLI)
 
-Same protocol without paste. From an agent-sdlc checkout (or any repo with the plugin package):
+Same protocol without paste. One-time: `cd ~/src/agent-sdlc && npm install && npm link`. Then from the **app** repo:
 
 ```bash
 export CURSOR_API_KEY=cursor_...
 
 # Preview handoffs only
-npm run execution-plans:drain -- --phase my-phase --dry-run
+agent-sdlc-drain --phase my-phase --dry-run
 
 # Drain until empty or blocked (one fresh local SDK agent per plan)
-npm run execution-plans:drain -- --phase my-phase
+agent-sdlc-drain --phase my-phase
 
 # Parallel batches when deps allow
-npm run execution-plans:drain -- --phase my-phase --max-parallel 3
+agent-sdlc-drain --phase my-phase --max-parallel 3
 
 # One plan only
-npm run execution-plans:drain -- --phase my-phase --max-plans 1
+agent-sdlc-drain --phase my-phase --max-plans 1
 ```
+
+Without a global link, from the agent-sdlc checkout: `npm run execution-plans:drain -- --cwd /path/to/app --phase my-phase`.
 
 State is written to `.agent-sdlc/plan-dispatch-state.json` (gitignored). Exit codes: `0` drained/success, `1` startup/auth/gate, `2` agent run failed, `3` acceptance failed.
 
