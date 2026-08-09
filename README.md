@@ -52,8 +52,9 @@ bash scripts/install-plugin-dev.sh
 
 That script:
 
-1. Links every skill under `.cursor/skills/` → `skills/` so **this repo** exposes `/sdlc` and specialist slash commands (Desktop + Cloud).
-2. Symlinks `~/.cursor/plugins/local/agent-sdlc` → this checkout so the full plugin manifest (`commands/`, `plugin-agents/`, etc.) loads on Desktop after reload.
+1. Copies every skill under `.cursor/skills/` from `skills/` so **this repo** exposes `/sdlc` and specialist slash commands (Desktop + Cloud). Real files are required — symlinks are not reliably discovered by Cloud Agents.
+2. Copies `commands/sdlc.md` to `.cursor/commands/sdlc.md` for workspace slash-command discovery.
+3. Symlinks `~/.cursor/plugins/local/agent-sdlc` → this checkout so the full plugin manifest (`commands/`, `plugin-agents/`, etc.) loads on Desktop after reload.
 
 Re-run the script after adding a new skill directory under `skills/`.
 
