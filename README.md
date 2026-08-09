@@ -86,6 +86,79 @@ ln -s ../../vendor/agent-sdlc/skills/sdlc .cursor/skills/sdlc
 
 Or copy `skills/sdlc` (and any specialists you need) into `.cursor/skills/` and commit them so Cloud clones include them.
 
+## Updating installations in other repos
+
+After this repository changes (new skills, `/sdlc` updates, plugin layout), refresh each install method as follows. Pick the path that matches how you installed.
+
+### Local plugin (Option A symlink)
+
+The Desktop plugin is a symlink into your clone, so updating is a pull + reload:
+
+```bash
+# in the clone that ~/.cursor/plugins/local/agent-sdlc points at
+cd ~/src/agent-sdlc   # or your clone path
+git pull
+```
+
+Then **Developer: Reload Window** in Cursor. Re-link only if you moved the clone or deleted the symlink; otherwise `git pull` is enough.
+
+### In-repo plugin development (`install-plugin-dev.sh`)
+
+Workspace skills under `.cursor/skills/` are **copies**, not live links to `skills/`. After pulling this repo:
+
+```bash
+cd /path/to/agent-sdlc
+git pull
+bash scripts/install-plugin-dev.sh
+```
+
+Re-run the script whenever `skills/` or `commands/` change so Desktop and Cloud Agents see the new files. Reload Cursor after the script finishes.
+
+### Team Marketplace
+
+Marketplace installs track the imported GitHub repo for your team.
+
+1. Merge (or release) the desired changes on the branch Cursor imports for this plugin.
+2. Wait for teammates’ Cursor clients to refresh the marketplace plugin, or ask them to open **Plugins → Team Marketplaces**, confirm **agent-sdlc**, and reinstall/refresh if `/sdlc` or new skills do not appear.
+3. Reload the window if slash commands still look stale.
+
+No per-app-repo `git pull` is required for marketplace consumers.
+
+### Per-repo submodule
+
+From each application repository that vendors this plugin via submodule:
+
+```bash
+# from the application repository
+git submodule update --remote vendor/agent-sdlc
+git add vendor/agent-sdlc
+git commit -m "chore: bump agent-sdlc submodule"
+```
+
+If you symlinked `.cursor/skills/<name>` into the submodule, those links pick up the new tip automatically after the submodule bump. Commit the submodule pointer in the app repo so Cloud clones get the update.
+
+Adjust `vendor/agent-sdlc` if your submodule path differs.
+
+### Vendored / copied skills (no submodule)
+
+If you copied `skills/` (or selected skill folders) into another repo’s `.cursor/skills/`:
+
+1. Pull or download the desired revision of this repository.
+2. Re-copy the skill directories you use (at least `skills/sdlc`, plus any specialists you linked).
+3. Commit the updated files in the application repository.
+
+Copied trees do not update themselves — treat each bump as a deliberate vendor refresh.
+
+### Quick reference
+
+| Install method | Update action | Reload Cursor? |
+| --- | --- | --- |
+| Local plugin symlink | `git pull` in the clone | Yes |
+| `install-plugin-dev.sh` | `git pull` + re-run script | Yes |
+| Team Marketplace | Ship upstream; refresh plugin in Cursor if needed | Yes if commands stale |
+| Submodule in app repo | `git submodule update --remote` + commit pointer | Yes (Desktop); Cloud uses next clone/PR |
+| Copied `.cursor/skills` | Re-copy from upstream + commit | Yes (Desktop); Cloud uses next clone/PR |
+
 ## Usage
 
 In Agent chat (Desktop or Cloud):
