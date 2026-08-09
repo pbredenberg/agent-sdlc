@@ -36,7 +36,8 @@ Use this skill when the operator says:
 4. Identify parallel batches (plans with the same satisfied dependencies).
 5. Write phase `README.md` with plan index, dependency graph, and handoff template.
 6. Write numbered plan files `NN-slug.md` with YAML frontmatter.
-7. Summarize: plan count, execution order, parallel batches, open questions.
+7. For foundation/scaffold phases, include "Create or verify root `AGENTS.md`" in the first plan's steps and acceptance criteria.
+8. Summarize: plan count, execution order, parallel batches, open questions.
 
 ## Phase layout
 

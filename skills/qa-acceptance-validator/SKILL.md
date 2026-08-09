@@ -9,9 +9,10 @@ description: Validate changes against acceptance criteria, classify defects by s
 
 1. Map acceptance criteria to executable checks.
 2. Run required validation suite and record evidence.
-3. Classify failures: deterministic, flaky, or environment-specific.
-4. Produce defect reports with reproducible steps.
-5. Return approval decision and retest requirements.
+3. When `AGENTS.md` was created or updated, spot-check that listed commands resolve to real scripts.
+4. Classify failures: deterministic, flaky, or environment-specific.
+5. Produce defect reports with reproducible steps.
+6. Return approval decision and retest requirements.
 
 ## Defect report format
 

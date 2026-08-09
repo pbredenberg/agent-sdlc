@@ -24,6 +24,7 @@ description: Prepare review-ready pull requests with clear rationale, risk notes
 
 ## Changes
 - ...
+- AGENTS.md: created | updated | unchanged (when applicable)
 
 ## Test plan
 - [ ] Command/result 1

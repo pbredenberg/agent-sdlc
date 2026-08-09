@@ -73,7 +73,7 @@ User-only `~/.cursor/...` paths do **not** reach Cursor Cloud VMs. Use a Team Ma
 | --- | --- |
 | **Team Marketplace** Required / Default On | Best for all team Cloud Agent runs |
 | **Commit this plugin into each app repo** | Solo / no Team plan — add as submodule or vendored `.cursor/` skills |
-| **AGENTS.md pointer** | Optional Cloud runbook that tells agents to follow `/sdlc` when present |
+| **AGENTS.md** | Agent runbook at repo root — `/sdlc` auto-generates and maintains it via `agents-md-author`; see [agents.md](https://agents.md/) |
 
 ### Solo / per-repo fallback
 

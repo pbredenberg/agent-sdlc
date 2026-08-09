@@ -16,15 +16,16 @@ Turn the user's request (or the active ticket/issue context) into a review-ready
 
 Execute stages in order. Skip a stage only when the orchestrator policy says it is not applicable. Record a short handoff note between stages.
 
-1. **Orchestrate** — classify the task (`implementation` | `investigation` | `unknown`), build a plan, set retry budgets. Use skill `/workflow-orchestrator-routing`.
+1. **Orchestrate** — classify the task (`scaffold` | `implementation` | `investigation` | `unknown`), build a plan, set retry budgets. Use skill `/workflow-orchestrator-routing`.
 2. **Business Analyst** — normalize requirements, acceptance criteria, open questions. Prefer `/business-analyst-requirements-pack`, `/gherkin-scenario-writer`, `/agile-product-owner`.
 3. **Software Architect** — slice work, constraints, and interfaces. Prefer `/architecture-slice-planner`; use `/database-designer` or `/migration-architect` when schema/migration work appears.
 4. **Codebase context** — gather the minimal relevant files, conventions, test/lint/build commands from this repo (treat discovery as the project profile).
-5. **QA author** — ensure failing or characterizing tests exist before implementation. Prefer `/api-test-suite-builder` when API surface changes.
-6. **Senior Engineer** — implement against tests and project conventions. Use `/implementation-quality-loop`.
-7. **Validation / QA** — re-run the project's own test/lint/build commands; gate on `/qa-acceptance-validator`.
-8. **Security + DevOps** — review risk and operational readiness. Use `/security-change-review`, `/devops-operations-readiness`, and other DevOps skills only when relevant.
-9. **PR** — open or update a review-ready PR. Use `/pr-packager`, `/pr-review-expert`, `/release-manager` as needed. **Never merge** without explicit human approval.
+5. **Agent context profile** — create or maintain `AGENTS.md` using `/agents-md-author`. On scaffold: always create root file. On every implementation run: diff project profile vs existing file and patch when commands, layout, or conventions drift.
+6. **QA author** — ensure failing or characterizing tests exist before implementation. Prefer `/api-test-suite-builder` when API surface changes.
+7. **Senior Engineer** — implement against tests and project conventions. Use `/implementation-quality-loop`.
+8. **Validation / QA** — re-run the project's own test/lint/build commands; gate on `/qa-acceptance-validator`.
+9. **Security + DevOps** — review risk and operational readiness. Use `/security-change-review`, `/devops-operations-readiness`, and other DevOps skills only when relevant.
+10. **PR** — open or update a review-ready PR. Use `/pr-packager`, `/pr-review-expert`, `/release-manager` as needed. **Never merge** without explicit human approval.
 
 ## Execution plan branches
 
@@ -41,6 +42,7 @@ Unattended drain: `npm run execution-plans:drain -- --phase <name>` (requires `C
 ## Operating rules
 
 - Discover language, package manager, test/lint/build, and VCS conventions from **this** repository. Do not hardcode another project's toolchain.
+- Maintain `AGENTS.md` on every run when the project profile drifts from the existing file (see `/agents-md-author`).
 - Prefer small, reviewable diffs. Keep commits and PR narrative traceable to the original request.
 - Stop and ask when product intent, compliance, or ownership is ambiguous. Resolve engineering clarifications yourself when possible.
 - Bound retries; escalate blockers instead of looping forever.

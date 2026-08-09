@@ -38,7 +38,7 @@ You are **traffic control only**. Never implement a plan's deliverables in this 
 - Open the phase `README.md` and copy the **Handoff prompt** fenced `text` block.
 - Replace the `NN-....md` placeholder with the **exact** relative path of the next plan (e.g. `docs/execution-plans/my-phase/01-schema.md`).
 - Do **not** paste other plan bodies into the handoff.
-- Point the worker at project conventions (AGENTS.md, README, test commands).
+- Point the worker at project conventions (nearest `AGENTS.md`, README, test commands).
 
 ### 5. Spawn fresh worker (interactive)
 

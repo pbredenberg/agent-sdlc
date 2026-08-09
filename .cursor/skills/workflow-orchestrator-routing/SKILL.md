@@ -14,13 +14,18 @@ Classify incoming work before routing:
 | `draft_execution_plans` | "draft plans", "plan only", "create exec plans", "break into execution plans" | `execution-plan-author` |
 | `implement_execution_plan` | "run plan", "execute plan", path to `docs/execution-plans/`, dispatcher handoff | `implementation-quality-loop` (single plan scope) |
 | `drain_execution_plans` | "drain plans", "next plan", "advance phase", `/execution-plan-dispatch` | `execution-plan-dispatcher` |
-| `implementation` | Feature, bug fix, refactor with direct code changes | Full SDLC pipeline |
-| `investigation` | Research, explain, diagnose without code changes | Context gathering + report |
+| `scaffold` | "scaffold", "greenfield", "bootstrap", "new project", "create project from scratch" | Full SDLC pipeline; **mandatory** root `AGENTS.md` via `agents-md-author` |
+| `implementation` | Feature, bug fix, refactor with direct code changes | Full SDLC pipeline; **conditional** `AGENTS.md` maintenance after codebase context |
+| `investigation` | Research, explain, diagnose without code changes | Context gathering + report; read `AGENTS.md` if present, no write |
 | `unknown` | Ambiguous intent | Clarify with operator |
 
 When `draft_execution_plans` is classified, **never** route to implementation stages. Output is markdown under `docs/execution-plans/` only.
 
 When `implement_execution_plan` is classified, scope is **one numbered plan file** — commit with `exec-plan(<phase>): <title>` and delete the plan file when done.
+
+When `scaffold` is classified, the first architecture slice must include root `AGENTS.md` creation. Route through `agents-md-author` at the Agent context profile stage.
+
+When `implementation` is classified, run `agents-md-author` after codebase context on every pipeline invocation. Patch `AGENTS.md` only when project profile drifts; skip with reason when current.
 
 ## Routing process
 

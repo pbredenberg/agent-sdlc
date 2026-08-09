@@ -7,7 +7,7 @@ description: Coordinates the multi-agent SDLC factory: classify work, route spec
 
 Own end-to-end progress for the current task.
 
-1. Classify: `implementation` | `investigation` | `unknown`.
+1. Classify: `scaffold` | `implementation` | `investigation` | `unknown`.
 2. Plan specialist sequence and handoff contracts.
 3. Enforce retry budgets and escalate blockers.
 4. Prefer skill `workflow-orchestrator-routing` for state transitions.

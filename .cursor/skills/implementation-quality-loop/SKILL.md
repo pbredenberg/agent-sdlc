@@ -11,7 +11,8 @@ description: Drive implementation through a tight loop of coding, testing, defec
 2. Implement smallest viable change set.
 3. Run tests/lint/typecheck relevant to changed behavior.
 4. Fix failures with root-cause-first reasoning.
-5. Prepare QA handoff notes with residual risks.
+5. If commands, layout, or conventions changed, flag `agents-md-author` for re-check before QA handoff.
+6. Prepare QA handoff notes with residual risks.
 
 ## Executing a numbered plan
 

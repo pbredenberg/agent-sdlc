@@ -13,6 +13,7 @@ description: Convert approved requirements into architecture decisions, interfac
 4. Define interface contracts and data-flow boundaries.
 5. Break work into ordered slices with dependency notes.
 6. When the operator requests execution plans, emit slices as numbered plans via `execution-plan-author` instead of implementing inline.
+7. For scaffold/greenfield work, the first slice must include root `AGENTS.md` as a deliverable (via `agents-md-author`).
 
 ## Execution plan output
 
