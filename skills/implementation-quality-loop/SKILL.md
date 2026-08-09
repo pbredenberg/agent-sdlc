@@ -13,6 +13,19 @@ description: Drive implementation through a tight loop of coding, testing, defec
 4. Fix failures with root-cause-first reasoning.
 5. Prepare QA handoff notes with residual risks.
 
+## Executing a numbered plan
+
+When implementing a plan from `docs/execution-plans/<phase>/NN-*.md`:
+
+1. Read the plan file and phase README; scope work to that plan only.
+2. Implement deliverables per plan acceptance criteria.
+3. Run project test/lint/typecheck commands listed in the plan.
+4. Create **one** git commit: `exec-plan(<phase>): <title>` (from plan frontmatter).
+5. Delete the plan file and update the phase README index in the same change.
+6. Do not start other pending plans in the same commit.
+
+See [execution-plans.md](../references/execution-plans.md).
+
 ## Output template
 
 ```markdown

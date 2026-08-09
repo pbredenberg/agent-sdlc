@@ -12,6 +12,18 @@ description: Convert approved requirements into architecture decisions, interfac
 3. Choose a preferred option with rationale.
 4. Define interface contracts and data-flow boundaries.
 5. Break work into ordered slices with dependency notes.
+6. When the operator requests execution plans, emit slices as numbered plans via `execution-plan-author` instead of implementing inline.
+
+## Execution plan output
+
+When the operator asks for execution plans (not implementation):
+
+1. Follow `execution-plan-author` skill for format and guardrails.
+2. Map each architecture slice to a numbered plan with `depends_on` and `parallel_group`.
+3. Include the architecture decision summary in the phase README overview.
+4. **Do not** edit application code.
+
+See [execution-plans.md](../references/execution-plans.md).
 
 ## Output template
 
