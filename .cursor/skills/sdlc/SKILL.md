@@ -26,6 +26,20 @@ Execute stages in order. Skip a stage only when the orchestrator policy says it 
 8. **Security + DevOps** — review risk and operational readiness. Use `security-change-review`, `devops-operations-readiness`, and other DevOps skills only when relevant.
 9. **PR** — open or update a review-ready PR. Use `pr-packager`, `pr-review-expert`, `release-manager` as needed. **Never merge** without explicit human approval.
 
+## Execution plan branches
+
+When the operator's intent is execution-plan work, **do not** run the full pipeline. Route instead:
+
+| Intent | Skill | Notes |
+| --- | --- | --- |
+| Draft execution plans | `execution-plan-author` | Plan files only under `docs/execution-plans/`; never implement |
+| Advance / drain plans | `execution-plan-dispatcher` | Traffic control only; one fresh agent per plan |
+| Implement a single numbered plan | `implementation-quality-loop` | Follow plan file; commit + delete plan when done |
+
+Unattended drain: `npm run execution-plans:drain -- --phase <name>` (requires `CURSOR_API_KEY`).
+
+See [execution-plans.md](../references/execution-plans.md) for the shared format.
+
 ## Operating rules
 
 - Discover language, package manager, test/lint/build, and VCS conventions from **this** repository. Do not hardcode another project's toolchain.

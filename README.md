@@ -7,6 +7,7 @@ Cursor plugin that turns this multi-agent SDLC kit into an invokable slash comma
 | Invoke | What it does |
 | --- | --- |
 | `/sdlc` | Runs the full factory pipeline against the **current** workspace (orchestrate → BA → architecture → context → QA → implement → validate → security/DevOps → PR) |
+| `/execution-plan-dispatch` | Dispatches numbered execution plans one plan per fresh agent |
 | `/workflow-orchestrator-routing`, `/pr-packager`, … | Individual specialist skills (also listed under Customize → Skills) |
 
 `/sdlc` is slash-only (`disable-model-invocation: true`) so it runs when you invoke it, not because the model guessed the workflow.
@@ -174,6 +175,52 @@ Stage-only examples:
 /security-change-review
 /business-analyst-requirements-pack
 ```
+
+## Execution plans
+
+Draft numbered plans (no implementation) and drain them with one fresh agent per plan.
+
+### Draft (agent chat)
+
+```text
+/execution-plan-author Draft execution plans for rate limiting under phase rate-limit-api
+```
+
+Or via architecture:
+
+```text
+/architecture-slice-planner Break the rate limit feature into execution plans only — do not implement
+```
+
+Plans are written to `docs/execution-plans/<phase>/` with YAML frontmatter (`depends_on`, `parallel_group`).
+
+### Dispatch (interactive)
+
+```text
+/execution-plan-dispatch What's next for phase rate-limit-api?
+```
+
+Paste the handoff into a **new** Agent chat. The implementing agent commits with `exec-plan(<phase>): <title>` and deletes the plan file.
+
+### Drain (unattended CLI)
+
+From the agent-sdlc checkout (target repo as cwd):
+
+```bash
+npm install
+export CURSOR_API_KEY=cursor_...
+
+# Preview handoffs
+npm run execution-plans:drain -- --phase example-phase --dry-run
+
+# Drain sequentially
+npm run execution-plans:drain -- --phase my-phase
+
+# Parallel batches when dependencies allow
+npm run execution-plans:drain -- --phase my-phase --max-parallel 3
+```
+
+State file: `.agent-sdlc/plan-dispatch-state.json` (gitignored).
 
 ## Notes
 
