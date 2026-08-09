@@ -11,6 +11,8 @@ docs/execution-plans/<phase>/
   02-slug.md
 ```
 
+Plans may also sit directly under `docs/execution-plans/` (no phase folder). Drain those with `--phase .`.
+
 ## Modes
 
 | Mode | Skill | May edit app code? |
@@ -34,7 +36,7 @@ parallel_group: null
 
 1. Ship plan deliverables
 2. Run project test/lint/typecheck when applicable
-3. Commit: `exec-plan(<phase>): <title>`
+3. Commit: `exec-plan(<phase>): <title>` (use `exec-plan(.): <title>` for root plans)
 4. Delete plan file; update phase README index
 
 ## CLI
@@ -42,6 +44,8 @@ parallel_group: null
 ```bash
 # after one-time: cd ~/src/agent-sdlc && npm install && npm link
 agent-sdlc-drain --phase <phase> [--max-parallel N] [--dry-run]
+agent-sdlc-drain --phase .                  # no phase folder
+agent-sdlc-drain --all-phases               # every phase, sort order
 ```
 
 See `execution-plan-author` and `execution-plan-dispatcher` skills for full protocol.

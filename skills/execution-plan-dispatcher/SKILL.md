@@ -83,6 +83,12 @@ agent-sdlc-drain --phase my-phase --max-parallel 3
 
 # One plan only
 agent-sdlc-drain --phase my-phase --max-plans 1
+
+# No phase folder (plans directly under docs/execution-plans/)
+agent-sdlc-drain --phase .
+
+# All phase folders (root plans first if present)
+agent-sdlc-drain --all-phases
 ```
 
 Without a global link, from the agent-sdlc checkout: `npm run execution-plans:drain -- --cwd /path/to/app --phase my-phase`.

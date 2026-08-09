@@ -12,6 +12,8 @@ Agent runbook for the agent-sdlc Cursor plugin repository. Human docs live in [R
 
 - Drain execution plans (dry run): `agent-sdlc-drain --phase <name> --dry-run`
 - Drain execution plans: `agent-sdlc-drain --phase <name>` (requires `CURSOR_API_KEY`)
+- Drain root (no phase folder): `agent-sdlc-drain --phase .`
+- Drain all phases: `agent-sdlc-drain --all-phases`
 - Drain without global link: `npm run execution-plans:drain -- --phase <name> [--cwd <app>]`
 
 ## Testing instructions

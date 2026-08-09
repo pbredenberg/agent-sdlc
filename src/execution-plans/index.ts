@@ -35,9 +35,18 @@ export {
 } from "./dispatch-state.js";
 export {
   DEFAULT_MODEL,
+  finalizeDrainArgs,
   parseDrainArgs,
   printDrainUsage,
 } from "./parse-args.js";
+export {
+  EXECUTION_PLANS_DIR,
+  ROOT_PHASE,
+  formatPhaseLabel,
+  isRootPhase,
+  phaseDir,
+  planRelativePath,
+} from "./paths.js";
 export {
   drainExecutionPlans,
   EXIT_ACCEPTANCE,

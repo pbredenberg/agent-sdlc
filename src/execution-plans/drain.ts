@@ -2,6 +2,8 @@ import { buildHandoff } from "./build-handoff.js";
 import { createDispatchState, writeDispatchState } from "./dispatch-state.js";
 import { runAcceptanceGate } from "./acceptance-gate.js";
 import { getHeadSha } from "./commit-gate.js";
+import { listPhases } from "./list-plans.js";
+import { formatPhaseLabel } from "./paths.js";
 import { listDryRunBatches, selectRunnableBatch } from "./select-runnable.js";
 import type { DrainCliOptions, PendingPlan } from "./types.js";
 
@@ -31,6 +33,13 @@ export type DrainDeps = {
   log?: (message: string) => void;
 };
 
+type PhaseDrainOptions = DrainCliOptions & { phase: string };
+
+type PhaseDrainResult = {
+  code: number;
+  completed: number;
+};
+
 export async function drainExecutionPlans(
   options: DrainCliOptions,
   deps: DrainDeps,
@@ -39,21 +48,80 @@ export async function drainExecutionPlans(
     console.log(message);
   });
 
+  const phases = await resolvePhases(options);
+  if (phases.length === 0) {
+    log("No phases found under docs/execution-plans/");
+    return EXIT_STARTUP;
+  }
+
+  if (options.allPhases) {
+    log(`Draining ${phases.length} phase(s): ${phases.map(formatPhaseLabel).join(", ")}`);
+  }
+
+  let completed = 0;
+
+  for (const phase of phases) {
+    const remainingBudget = remainingMaxPlans(options.maxPlans, completed);
+    if (remainingBudget === 0) {
+      log(`Reached --max-plans ${options.maxPlans}; stopping.`);
+      return EXIT_OK;
+    }
+
+    const phaseOptions: PhaseDrainOptions = {
+      ...options,
+      phase,
+      maxPlans: remainingBudget,
+    };
+
+    const result = await drainOnePhase(phaseOptions, deps, log);
+    completed += result.completed;
+
+    if (result.code !== EXIT_OK) {
+      return result.code;
+    }
+  }
+
+  return EXIT_OK;
+}
+
+function remainingMaxPlans(
+  maxPlans: number | null,
+  completed: number,
+): number | null {
+  if (maxPlans === null) {
+    return null;
+  }
+  return Math.max(0, maxPlans - completed);
+}
+
+async function resolvePhases(options: DrainCliOptions): Promise<string[]> {
+  if (options.allPhases) {
+    return listPhases(options.cwd);
+  }
+
+  return [options.phase as string];
+}
+
+async function drainOnePhase(
+  options: PhaseDrainOptions,
+  deps: DrainDeps,
+  log: (message: string) => void,
+): Promise<PhaseDrainResult> {
   if (options.dryRun) {
     return await dryRunHandoffs(options, log);
   }
 
   if (options.apiKey === null) {
     log("CURSOR_API_KEY is required unless --dry-run");
-    return EXIT_STARTUP;
+    return { code: EXIT_STARTUP, completed: 0 };
   }
 
   let completed = 0;
 
   while (true) {
     if (options.maxPlans !== null && completed >= options.maxPlans) {
-      log(`Reached --max-plans ${options.maxPlans}; stopping.`);
-      return EXIT_OK;
+      log(`Reached --max-plans budget for this run; stopping.`);
+      return { code: EXIT_OK, completed };
     }
 
     const next = await selectRunnableBatch({
@@ -63,7 +131,8 @@ export async function drainExecutionPlans(
     });
 
     if (!next.ok) {
-      return await handleSelectFailure(options, next.reason, log);
+      const code = await handleSelectFailure(options, next.reason, log);
+      return { code, completed };
     }
 
     const batch = next.batch;
@@ -75,14 +144,16 @@ export async function drainExecutionPlans(
     const baseHead = getHeadSha(options.cwd);
     if (baseHead === null && !options.skipAcceptance) {
       log("Could not read git HEAD. Use --skip-acceptance for non-git repos.");
-      return EXIT_STARTUP;
+      return { code: EXIT_STARTUP, completed };
     }
 
-    log(`Running batch of ${plansToRun.length} plan(s): ${plansToRun.map((p) => p.relativePath).join(", ")}`);
+    log(
+      `Running batch of ${plansToRun.length} plan(s): ${plansToRun.map((p) => p.relativePath).join(", ")}`,
+    );
 
     const runExit = await runBatch(options, plansToRun, baseHead ?? "", deps, log);
     if (runExit !== EXIT_OK) {
-      return runExit;
+      return { code: runExit, completed };
     }
 
     completed += plansToRun.length;
@@ -90,9 +161,9 @@ export async function drainExecutionPlans(
 }
 
 async function dryRunHandoffs(
-  options: DrainCliOptions,
+  options: PhaseDrainOptions,
   log: (message: string) => void,
-): Promise<number> {
+): Promise<PhaseDrainResult> {
   const batches = await listDryRunBatches({
     repoRoot: options.cwd,
     phase: options.phase,
@@ -100,12 +171,13 @@ async function dryRunHandoffs(
   });
 
   if (batches.length === 0) {
-    return EXIT_STARTUP;
+    return { code: EXIT_STARTUP, completed: 0 };
   }
 
   const first = batches[0];
   if (!first.ok) {
-    return await handleSelectFailure(options, first.reason, log);
+    const code = await handleSelectFailure(options, first.reason, log);
+    return { code, completed: 0 };
   }
 
   let printed = 0;
@@ -150,11 +222,11 @@ async function dryRunHandoffs(
       message: `dry-run printed ${printed} handoff(s)`,
     }),
   );
-  return EXIT_OK;
+  return { code: EXIT_OK, completed: printed };
 }
 
 async function handleSelectFailure(
-  options: DrainCliOptions,
+  options: PhaseDrainOptions,
   reason:
     | "no_pending_plans"
     | "phase_missing"
@@ -163,7 +235,7 @@ async function handleSelectFailure(
   log: (message: string) => void,
 ): Promise<number> {
   if (reason === "no_pending_plans") {
-    log(`Phase ${options.phase}: no pending plans; drained.`);
+    log(`Phase ${formatPhaseLabel(options.phase)}: no pending plans; drained.`);
     await writeDispatchState(
       options.cwd,
       createDispatchState({
@@ -179,7 +251,7 @@ async function handleSelectFailure(
   }
 
   if (reason === "phase_missing") {
-    log(`Phase folder missing: docs/execution-plans/${options.phase}`);
+    log(`Phase folder missing: ${formatPhaseLabel(options.phase)}`);
     return EXIT_STARTUP;
   }
 
@@ -204,7 +276,7 @@ async function handleSelectFailure(
 }
 
 async function runBatch(
-  options: DrainCliOptions,
+  options: PhaseDrainOptions,
   plans: PendingPlan[],
   baseHead: string,
   deps: DrainDeps,
@@ -296,7 +368,7 @@ type AgentRunResult =
   | { ok: false; exitCode: number };
 
 async function runOneAgent(
-  options: DrainCliOptions,
+  options: PhaseDrainOptions,
   plan: PendingPlan,
   handoff: string,
   deps: DrainDeps,
