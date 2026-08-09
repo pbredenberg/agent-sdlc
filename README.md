@@ -124,6 +124,14 @@ git pull
 
 Then **Developer: Reload Window**. Re-run the `ln -sfn` install only if you moved the clone.
 
+If you use the drain CLI globally, refresh the link after CLI changes:
+
+```bash
+cd ~/src/agent-sdlc
+npm install
+npm link
+```
+
 ### Team Marketplace
 
 1. Merge the desired changes on the branch Cursor imports for this plugin.
@@ -167,10 +175,11 @@ Reload Cursor after the script finishes.
 
 | Install method | Update | Reload Cursor? |
 | --- | --- | --- |
-| Desktop local plugin | `git pull` in the clone | Yes |
+| Desktop local plugin | `git pull` in the clone (+ `npm link` if you use the drain CLI) | Yes |
 | Team Marketplace | Ship upstream; refresh plugin if needed | If commands look stale |
 | Copied `.cursor/skills` in an app | Re-copy from upstream + commit | Yes (Desktop); Cloud on next clone/PR |
 | `install-plugin-dev.sh` (this repo) | `git pull` + re-run script | Yes |
+| Global `agent-sdlc-drain` | `git pull` + `npm install` + `npm link` in the clone | No |
 
 ## Usage
 
@@ -216,23 +225,51 @@ Paste the handoff into a **new** Agent chat. The implementing agent commits with
 
 ### Drain (unattended CLI)
 
-From the agent-sdlc checkout (target repo as cwd):
+Plans live in the **app** repo under `docs/execution-plans/<phase>/`. The CLI ships with this repository.
+
+#### One-time global install
 
 ```bash
+git clone https://github.com/pbredenberg/agent-sdlc.git ~/src/agent-sdlc
+cd ~/src/agent-sdlc
+npm install
+npm link
+```
+
+That puts `agent-sdlc-drain` on your `PATH`. Re-run `npm install && npm link` after pulling CLI changes.
+
+#### Run from any app repo
+
+```bash
+export CURSOR_API_KEY=cursor_...
+cd /path/to/your-app
+
+# Preview handoffs
+agent-sdlc-drain --phase example-phase --dry-run
+
+# Drain sequentially
+agent-sdlc-drain --phase my-phase
+
+# Parallel batches when dependencies allow
+agent-sdlc-drain --phase my-phase --max-parallel 3
+```
+
+`--cwd` defaults to the current directory (the app). Override if needed: `agent-sdlc-drain --cwd /path/to/your-app --phase my-phase`.
+
+#### Without a global link
+
+From the agent-sdlc checkout:
+
+```bash
+cd ~/src/agent-sdlc
 npm install
 export CURSOR_API_KEY=cursor_...
 
-# Preview handoffs
-npm run execution-plans:drain -- --phase example-phase --dry-run
-
-# Drain sequentially
-npm run execution-plans:drain -- --phase my-phase
-
-# Parallel batches when dependencies allow
-npm run execution-plans:drain -- --phase my-phase --max-parallel 3
+npm run execution-plans:drain -- --cwd /path/to/your-app --phase my-phase --dry-run
+npm run execution-plans:drain -- --cwd /path/to/your-app --phase my-phase
 ```
 
-State file: `.agent-sdlc/plan-dispatch-state.json` (gitignored).
+State file (in the app repo): `.agent-sdlc/plan-dispatch-state.json` (gitignored).
 
 ## Notes
 

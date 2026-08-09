@@ -17,7 +17,7 @@ docs/execution-plans/<phase>/
 | --- | --- | --- |
 | Draft plans | `execution-plan-author` | **No** |
 | Dispatch (interactive) | `execution-plan-dispatcher` | **No** |
-| Drain (unattended) | `npm run execution-plans:drain` | Agents implement; CLI orchestrates |
+| Drain (unattended) | `agent-sdlc-drain` | Agents implement; CLI orchestrates |
 
 ## Plan frontmatter
 
@@ -40,7 +40,8 @@ parallel_group: null
 ## CLI
 
 ```bash
-npm run execution-plans:drain -- --phase <phase> [--max-parallel N] [--dry-run]
+# after one-time: cd ~/src/agent-sdlc && npm install && npm link
+agent-sdlc-drain --phase <phase> [--max-parallel N] [--dry-run]
 ```
 
 See `execution-plan-author` and `execution-plan-dispatcher` skills for full protocol.

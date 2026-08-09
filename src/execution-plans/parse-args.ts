@@ -4,7 +4,8 @@ import type { DrainCliOptions } from "./types.js";
 export const DEFAULT_MODEL = "composer-2.5";
 
 export function printDrainUsage(): void {
-  console.error(`Usage: npm run execution-plans:drain -- --phase <name> [options]
+  console.error(`Usage: agent-sdlc-drain --phase <name> [options]
+       npm run execution-plans:drain -- --phase <name> [options]
 
 Drain numbered execution plans under docs/execution-plans/<phase>/ with one
 fresh Cursor SDK Agent per plan. Supports parallel batches when dependencies allow.

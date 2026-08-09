@@ -37,7 +37,7 @@ When the operator's intent is execution-plan work, **do not** run the full pipel
 | Advance / drain plans | `execution-plan-dispatcher` | Traffic control only; one fresh agent per plan |
 | Implement a single numbered plan | `implementation-quality-loop` | Follow plan file; commit + delete plan when done |
 
-Unattended drain: `npm run execution-plans:drain -- --phase <name>` (requires `CURSOR_API_KEY`).
+Unattended drain: `agent-sdlc-drain --phase <name>` (requires `CURSOR_API_KEY`; one-time `npm link` from this repo).
 
 See [execution-plans.md](../references/execution-plans.md) for the shared format.
 
