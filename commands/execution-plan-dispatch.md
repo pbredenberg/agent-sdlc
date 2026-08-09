@@ -23,6 +23,8 @@ One-time: `cd ~/src/agent-sdlc && npm install && npm link`. Then from the app re
 ```bash
 export CURSOR_API_KEY=cursor_...
 agent-sdlc-drain --phase <phase-name> [--dry-run] [--max-plans N] [--max-parallel N]
+agent-sdlc-drain --phase .              # plans directly under docs/execution-plans/
+agent-sdlc-drain --all-phases           # every phase folder, sort order
 ```
 
 Requires `CURSOR_API_KEY`. Same one-plan-per-agent rule; state in `.agent-sdlc/plan-dispatch-state.json`.

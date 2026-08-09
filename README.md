@@ -252,6 +252,13 @@ agent-sdlc-drain --phase my-phase
 
 # Parallel batches when dependencies allow
 agent-sdlc-drain --phase my-phase --max-parallel 3
+
+# Plans with no phase folder (files directly under docs/execution-plans/)
+agent-sdlc-drain --phase .
+
+# Every phase folder (root plans first if present), in sort order
+agent-sdlc-drain --all-phases
+agent-sdlc-drain --all-phases --dry-run
 ```
 
 `--cwd` defaults to the current directory (the app). Override if needed: `agent-sdlc-drain --cwd /path/to/your-app --phase my-phase`.

@@ -30,7 +30,7 @@ Use this skill when the operator says:
 
 ## Workflow
 
-1. Confirm phase name (kebab-case, e.g. `rate-limit-api`).
+1. Confirm phase name (kebab-case, e.g. `rate-limit-api`). If the operator has no phases, use a single folder such as `default` — prefer a phase folder over dumping plans at `docs/execution-plans/` root (root plans are drainable with `--phase .` but harder to organize).
 2. Gather requirements from ticket, prior BA/architecture artifacts, or operator context.
 3. Decompose into ordered slices with clear `depends_on` edges.
 4. Identify parallel batches (plans with the same satisfied dependencies).

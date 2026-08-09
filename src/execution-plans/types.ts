@@ -44,7 +44,9 @@ export type CommitGateResult =
   | { ok: false; reason: string; details?: string };
 
 export type DrainCliOptions = {
-  phase: string;
+  /** Single phase to drain; null when allPhases is true. */
+  phase: string | null;
+  allPhases: boolean;
   cwd: string;
   model: string;
   maxPlans: number | null;
