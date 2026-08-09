@@ -1,6 +1,7 @@
 ---
 name: sdlc
 description: Run the agent-sdlc multi-agent factory pipeline against the current project (requirements → architecture → implementation → QA → security/DevOps → PR).
+disable-model-invocation: true
 ---
 
 # /sdlc — Agent SDLC Factory
