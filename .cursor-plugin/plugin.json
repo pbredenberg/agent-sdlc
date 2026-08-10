@@ -1,7 +1,7 @@
 {
   "name": "agent-sdlc",
   "version": "1.0.0",
-  "description": "Multi-agent SDLC factory for Cursor — invoke /sdlc to run the orchestrated pipeline, or call specialist skills directly.",
+  "description": "Multi-agent SDLC kit for Cursor — invoke /sdlc to run the orchestrated pipeline, or call specialist skills directly.",
   "author": {
     "name": "Paul B",
     "email": "slowlypoorly@gmail.com"

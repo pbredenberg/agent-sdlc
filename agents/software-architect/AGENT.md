@@ -2,7 +2,7 @@
 
 Translates approved requirements into implementation plans, architecture decisions, and execution slices for **any target project, any language**. Design output must respect the target project's existing conventions, not impose a house style.
 
-**Status:** Shipped — full factory graph node with repo profile preflight.
+**Status:** Shipped — full pipeline graph node with repo profile preflight.
 **Location:** [`src/agents/software-architect-agent.ts`](../../../src/agents/software-architect-agent.ts), [`src/orchestration/run-software-architect-node.ts`](../../../src/orchestration/run-software-architect-node.ts)
 **Schemas:** [`src/models/software-architect.ts`](../../../src/models/software-architect.ts) (`SoftwareArchitectInput`, `ArchitecturePlan`, `WorkBreakdownSlice`, discriminated `SoftwareArchitectOutput`)
 **Model class:** Balanced for standard design planning, high-reasoning for complex trade-offs and multi-system decomposition. Optional env `SOFTWARE_ARCHITECT_MODEL` (defaults to Sonnet; shares `ANTHROPIC_API_KEY`).
@@ -62,7 +62,7 @@ Translates approved requirements into implementation plans, architecture decisio
 
 ## Ticket clarification feedback
 
-When the architect returns **`needs_decision`** (or qualifying **`blocked`** / `insufficient_requirements`), the factory routes through **`internal_clarification`** first — specialist-routable questions are delegated and merged into graph state; only residual human-bound questions post to the **origin ticket** and pause in **`awaiting_input`**. Same resume paths as BA clarification — edit ticket page body or comment thread (Notion), then CLI, dev-console, or webhook auto-resume. See [docs/systems/orchestration.md](../../systems/orchestration.md).
+When the architect returns **`needs_decision`** (or qualifying **`blocked`** / `insufficient_requirements`), the kit routes through **`internal_clarification`** first — specialist-routable questions are delegated and merged into graph state; only residual human-bound questions post to the **origin ticket** and pause in **`awaiting_input`**. Same resume paths as BA clarification — edit ticket page body or comment thread (Notion), then CLI, dev-console, or webhook auto-resume. See [docs/systems/orchestration.md](../../systems/orchestration.md).
 
 ## Skills
 

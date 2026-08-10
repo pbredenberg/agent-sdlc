@@ -1,12 +1,12 @@
 ---
 name: sdlc
-description: Run the agent-sdlc multi-agent factory pipeline against the current project (requirements → architecture → implementation → QA → security/DevOps → PR).
+description: Run the agent-sdlc multi-agent SDLC kit pipeline against the current project (requirements → architecture → implementation → QA → security/DevOps → PR).
 disable-model-invocation: true
 ---
 
-# /sdlc — Agent SDLC Factory
+# /sdlc — Agent SDLC Kit
 
-You are running the **agent-sdlc** factory against the **current workspace**. Follow the orchestrator pipeline. Do not invent a parallel process.
+You are running the **agent-sdlc** kit against the **current workspace**. Follow the orchestrator pipeline. Do not invent a parallel process.
 
 ## Goal
 

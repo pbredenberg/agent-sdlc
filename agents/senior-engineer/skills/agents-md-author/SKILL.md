@@ -72,7 +72,7 @@ Include only sections with real content. Omit empty sections.
 ## Security notes
 - <secrets, auth boundaries, never-commit paths>
 
-## SDLC factory
+## SDLC kit
 - Use `/sdlc` for full ticket-to-PR pipeline when this plugin is installed.
 ```
 

@@ -1,6 +1,6 @@
 ---
 name: orchestrator
-description: Coordinates the multi-agent SDLC factory: classify work, route specialists, track handoffs, retries, and escalation.
+description: Coordinates the multi-agent SDLC kit: classify work, route specialists, track handoffs, retries, and escalation.
 ---
 
 # Orchestrator Agent
