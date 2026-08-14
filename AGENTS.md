@@ -44,7 +44,7 @@ Agent runbook for the agent-sdlc Cursor plugin repository. Human docs live in [R
 ## SDLC kit
 
 - Use `/sdlc` for the full ticket-to-PR pipeline in Agent chat
-- **Cloud Agents:** if `/sdlc` is missing from the slash palette, type `/sdlc` in your prompt (the `sdlc-factory` rule applies) or attach the **sdlc** skill manually
+- **Cloud Agents:** if `/sdlc` is missing from the slash palette, type `/sdlc` in your prompt (the `sdlc-kit` rule applies) or attach the **sdlc** skill manually
 - Use `/execution-plan-dispatch` to advance numbered plans under `docs/execution-plans/`
 - Use `/agents-md-author` to create or refresh AGENTS.md when scaffolding or when commands drift
 - Skill source of truth: `skills/` (copied to `.cursor/skills/` by install script)

@@ -1,11 +1,11 @@
 ---
-description: Run the agent-sdlc factory pipeline when the user types /sdlc or asks for the full ticket-to-PR SDLC workflow. Cloud Agents may not expose slash commands — this rule is the explicit invocation fallback.
+description: Run the Agent SDLC Kit pipeline when the user types /sdlc or asks for the full ticket-to-PR SDLC workflow. Cloud Agents may not expose slash commands — this rule is the explicit invocation fallback.
 alwaysApply: false
 ---
 
-# /sdlc — Agent SDLC Factory (Cloud fallback)
+# /sdlc — Agent SDLC Kit (Cloud fallback)
 
-When the user message includes `/sdlc` or clearly requests the SDLC factory / ticket-to-PR pipeline, read and follow the workspace skill at `.cursor/skills/sdlc/SKILL.md` (or `skills/sdlc/SKILL.md` in this plugin repo).
+When the user message includes `/sdlc` or clearly requests the SDLC kit / ticket-to-PR pipeline, read and follow the workspace skill at `.cursor/skills/sdlc/SKILL.md` (or `skills/sdlc/SKILL.md` in this plugin repo).
 
 Do not invent a parallel process. Execute the orchestrator pipeline defined in that skill:
 

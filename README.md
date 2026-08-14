@@ -62,7 +62,7 @@ npm run install:plugin -- --mode vendor-full --target /path/to/app --source-url 
 
 ### Cloud Agents and `/sdlc`
 
-Cloud Agents do not use `~/.cursor/plugins/local/`. They discover skills from committed `.cursor/skills/` (real files, not symlinks). Slash palettes can be inconsistent — if `/sdlc` does not appear, type `/sdlc` in your prompt anyway (the `sdlc-factory` rule picks it up) or attach the **sdlc** skill from Customize → Skills.
+Cloud Agents do not use `~/.cursor/plugins/local/`. They discover skills from committed `.cursor/skills/` (real files, not symlinks). Slash palettes can be inconsistent — if `/sdlc` does not appear, type `/sdlc` in your prompt anyway (the `sdlc-kit` rule picks it up) or attach the **sdlc** skill from Customize → Skills.
 
 `.cursor/environment.json` in this repo runs `npm run install:plugin -- --mode cloud` at build time. **Also commit** `.cursor/skills/`, `.cursor/commands/`, and `.cursor/rules/` so indexing works before install finishes.
 

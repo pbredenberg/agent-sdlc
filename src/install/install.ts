@@ -205,9 +205,9 @@ function buildCopySdlcCommandSteps(options: InstallOptions): InstallStep[] {
 
 function buildCopySdlcRuleStep(options: InstallOptions): InstallStep {
   return {
-    label: "copy rules/sdlc-factory.mdc -> .cursor/rules/sdlc-factory.mdc",
+    label: "copy rules/sdlc-kit.mdc -> .cursor/rules/sdlc-kit.mdc",
     run: async () => {
-      const source = join(rulesSourceDir(options.sourceRoot), "sdlc-factory.mdc");
+      const source = join(rulesSourceDir(options.sourceRoot), "sdlc-kit.mdc");
       const destination = sdlcRuleDest(options.targetRoot);
       const sourceExists = await pathExists(source);
       if (!sourceExists) {
@@ -216,7 +216,7 @@ function buildCopySdlcRuleStep(options: InstallOptions): InstallStep {
 
       await ensureDir(rulesDestDir(options.targetRoot), options.dryRun);
       await copyPath(source, destination, options.dryRun);
-      console.log("copied rules/sdlc-factory.mdc -> .cursor/rules/sdlc-factory.mdc");
+      console.log("copied rules/sdlc-kit.mdc -> .cursor/rules/sdlc-kit.mdc");
     },
   };
 }

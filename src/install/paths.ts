@@ -43,7 +43,7 @@ export function rulesDestDir(targetRoot: string): string {
 }
 
 export function sdlcRuleDest(targetRoot: string): string {
-  return join(rulesDestDir(targetRoot), "sdlc-factory.mdc");
+  return join(rulesDestDir(targetRoot), "sdlc-kit.mdc");
 }
 
 export function sdlcSkillDest(targetRoot: string): string {
