@@ -1,0 +1,23 @@
+---
+description: Run the agent-sdlc factory pipeline when the user types /sdlc or asks for the full ticket-to-PR SDLC workflow. Cloud Agents may not expose slash commands — this rule is the explicit invocation fallback.
+alwaysApply: false
+---
+
+# /sdlc — Agent SDLC Factory (Cloud fallback)
+
+When the user message includes `/sdlc` or clearly requests the SDLC factory / ticket-to-PR pipeline, read and follow the workspace skill at `.cursor/skills/sdlc/SKILL.md` (or `skills/sdlc/SKILL.md` in this plugin repo).
+
+Do not invent a parallel process. Execute the orchestrator pipeline defined in that skill:
+
+1. Orchestrate (`workflow-orchestrator-routing`)
+2. Business Analyst requirements pack
+3. Architecture slice planner
+4. Codebase context discovery
+5. `AGENTS.md` maintenance (`agents-md-author`)
+6. QA author / tests before implementation
+7. Senior engineer implementation (`implementation-quality-loop`)
+8. Validation / QA (`qa-acceptance-validator`)
+9. Security + DevOps review when relevant
+10. PR packaging — never merge without human approval
+
+For execution-plan-only work, route to `execution-plan-author`, `execution-plan-dispatcher`, or `implementation-quality-loop` instead of the full pipeline.

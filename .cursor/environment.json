@@ -1,4 +1,4 @@
 {
   "name": "agent-sdlc",
-  "install": "bash scripts/install-plugin-dev.sh"
+  "install": "npm install && npm run install:plugin -- --mode cloud"
 }

@@ -5,8 +5,10 @@ Agent runbook for the agent-sdlc Cursor plugin repository. Human docs live in [R
 ## Setup commands
 
 - Install deps: `npm install`
-- Install plugin for dev in this repo: `bash scripts/install-plugin-dev.sh`
-- Link drain CLI globally: `npm link` (exposes `agent-sdlc-drain`)
+- Install plugin for dev in this repo: `npm run install:plugin -- --mode dev` (or `bash scripts/install-plugin-dev.sh`)
+- Install for Cloud builds only: `npm run install:plugin -- --mode cloud`
+- Vendor into another app repo: `npm run install:plugin -- --mode vendor-full --target <app>`
+- Link drain CLI globally: `npm run install:plugin -- --mode global-cli` (exposes `agent-sdlc-drain`)
 
 ## Dev commands
 
@@ -25,7 +27,7 @@ Agent runbook for the agent-sdlc Cursor plugin repository. Human docs live in [R
 - TypeScript with block function bodies over concise arrow bodies
 - Declarative, composable code; avoid nested `if` statements
 - Match existing skill and agent doc conventions when editing under `skills/` or `agents/`
-- After editing skills under `skills/`, re-run `bash scripts/install-plugin-dev.sh` so `.cursor/skills/` stays in sync
+- After editing skills under `skills/`, re-run `npm run install:plugin -- --mode dev` so `.cursor/skills/` stays in sync
 
 ## PR / commit conventions
 
@@ -42,6 +44,7 @@ Agent runbook for the agent-sdlc Cursor plugin repository. Human docs live in [R
 ## SDLC kit
 
 - Use `/sdlc` for the full ticket-to-PR pipeline in Agent chat
+- **Cloud Agents:** if `/sdlc` is missing from the slash palette, type `/sdlc` in your prompt (the `sdlc-factory` rule applies) or attach the **sdlc** skill manually
 - Use `/execution-plan-dispatch` to advance numbered plans under `docs/execution-plans/`
 - Use `/agents-md-author` to create or refresh AGENTS.md when scaffolding or when commands drift
 - Skill source of truth: `skills/` (copied to `.cursor/skills/` by install script)
