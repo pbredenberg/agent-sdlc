@@ -1,6 +1,7 @@
 import { buildHandoff } from "./build-handoff.js";
 import { createDispatchState, writeDispatchState } from "./dispatch-state.js";
 import { runAcceptanceGate } from "./acceptance-gate.js";
+import { ensureWorkspaceReady } from "./workspace-repair.js";
 import { getHeadSha } from "./commit-gate.js";
 import {
   countPendingByPhase,
@@ -228,6 +229,15 @@ async function drainOnePhase(
       `Running batch of ${plansToRun.length} plan(s): ${plansToRun.map((p) => p.relativePath).join(", ")}`,
     );
 
+    const workspaceReady = ensureWorkspaceReady(options.cwd);
+    if (!workspaceReady.ok) {
+      log(`Workspace setup failed: ${workspaceReady.reason}`);
+      if (workspaceReady.details) {
+        log(workspaceReady.details);
+      }
+      return { code: EXIT_STARTUP, completed };
+    }
+
     const runExit = await runBatch(options, plansToRun, baseHead ?? "", deps, log);
     if (runExit !== EXIT_OK) {
       return { code: runExit, completed };
@@ -405,6 +415,7 @@ async function runBatch(
       baseHead,
       skipScripts: options.skipAcceptance,
       skipCommit: options.skipAcceptance,
+      log,
     });
 
     if (!acceptance.ok) {

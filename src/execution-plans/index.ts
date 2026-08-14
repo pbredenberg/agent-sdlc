@@ -33,6 +33,15 @@ export {
   runAcceptanceGate,
 } from "./acceptance-gate.js";
 export {
+  detectPackageManager,
+  ensureWorkspaceReady,
+  extractFailedWorkspaces,
+  isRepairableScriptFailure,
+  rootNodeModulesExists,
+  runWorkspaceInstall,
+  runWorkspaceRepair,
+} from "./workspace-repair.js";
+export {
   getHeadSha,
   isGitRepo,
   verifyCommitForPlan,
