@@ -1,8 +1,8 @@
 # Business Analyst
 
-Converts stakeholder inputs (tickets, notes, transcripts) into unambiguous, testable requirements for **any target project**. This agent stands at the front of the factory pipeline: it normalizes problem statements and writes Gherkin acceptance criteria that every downstream agent consumes.
+Converts stakeholder inputs (tickets, notes, transcripts) into unambiguous, testable requirements for **any target project**. This agent stands at the front of the SDLC pipeline: it normalizes problem statements and writes Gherkin acceptance criteria that every downstream agent consumes.
 
-**Status:** Shipped — wired in the full factory graph (`business_analyst` LangGraph node).
+**Status:** Shipped — wired in the full pipeline graph (`business_analyst` LangGraph node).
 **Location:** [`src/agents/business-analyst-agent.ts`](../../../src/agents/business-analyst-agent.ts), [`src/orchestration/run-business-analyst-node.ts`](../../../src/orchestration/run-business-analyst-node.ts)
 **Schemas:** [`src/models/business-analyst.ts`](../../../src/models/business-analyst.ts) (`BusinessAnalystInput`, `RequirementsPack`, discriminated `BusinessAnalystOutput`)
 **Model class:** Fast for extraction and normalization, balanced for Gherkin authoring, high-reasoning for conflict resolution across ambiguous requirements.
@@ -61,7 +61,7 @@ Converts stakeholder inputs (tickets, notes, transcripts) into unambiguous, test
 
 ## Ticket clarification feedback
 
-When the BA returns **`needs_clarification`**, the factory routes through **`internal_clarification`** first — specialist-routable questions are delegated and merged into graph state; only residual human-bound questions post to the **origin ticket** and pause in **`awaiting_input`**. Operators answer by editing the ticket **page body** or Notion comment thread, then resume via CLI `--resume --job-id`, dev-console **Resume after clarification**, or optional **`CLARIFICATION_AUTO_RESUME`** on Notion webhooks. See [docs/systems/orchestration.md](../../systems/orchestration.md).
+When the BA returns **`needs_clarification`**, the kit routes through **`internal_clarification`** first — specialist-routable questions are delegated and merged into graph state; only residual human-bound questions post to the **origin ticket** and pause in **`awaiting_input`**. Operators answer by editing the ticket **page body** or Notion comment thread, then resume via CLI `--resume --job-id`, dev-console **Resume after clarification**, or optional **`CLARIFICATION_AUTO_RESUME`** on Notion webhooks. See [docs/systems/orchestration.md](../../systems/orchestration.md).
 
 ## Skills
 

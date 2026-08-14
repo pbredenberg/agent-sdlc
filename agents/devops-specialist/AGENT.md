@@ -1,8 +1,8 @@
 # DevOps Specialist
 
-Designs and operates CI/CD, deployment, and runtime reliability controls for **any target project the factory runs against** — not just the agent factory itself. Detects the target's toolchain via `projectProfile` and proposes pipeline changes that match its ecosystem, branch policy, and existing platform.
+Designs and operates CI/CD, deployment, and runtime reliability controls for **any target project the kit runs against** — not just agent-sdlc itself. Detects the target's toolchain via `projectProfile` and proposes pipeline changes that match its ecosystem, branch policy, and existing platform.
 
-**Status:** Planned — factory operational gate; collaborates with Security Specialist before PR release.
+**Status:** Planned — pipeline operational gate; collaborates with Security Specialist before PR release.
 **Location:** `src/agents/devops-specialist.ts` (planned)
 **Model class:** Fast for routine pipeline checks, balanced for CI/CD authoring, high-reasoning for incident analysis and architecture trade-offs.
 
@@ -76,7 +76,7 @@ Rejected for portability (not imported):
 ## Guardrails
 
 - Never embed secrets in prompts, logs, or generated artifacts.
-- Preserve 12-factor deployment assumptions from `docs/diagrams.md` for agent factory itself; honor the target project's documented conventions for everything else.
+- Preserve 12-factor deployment assumptions from `docs/diagrams.md` for agent-sdlc itself; honor the target project's documented conventions for everything else.
 - Keep all operational logs structured and correlated by `jobId`.
 - Prefer deterministic and reversible changes (explicit rollback path required).
 - Emit pipeline changes in the target project's existing CI format (GH Actions / GitLab CI / CircleCI / Jenkins / etc.) — never rewrite a repo into a different CI platform without an ADR.

@@ -1,8 +1,8 @@
 # Orchestrator Agent
 
-Coordinates the multi-agent workflow by deciding which specialist executes each step and when to escalate. This agent owns state transitions, routing decisions, and end-to-end task progress for **any target project** the factory runs against.
+Coordinates the multi-agent workflow by deciding which specialist executes each step and when to escalate. This agent owns state transitions, routing decisions, and end-to-end task progress for **any target project** the kit runs against.
 
-**Status:** Shipped — rules-based orchestrator gates plus **full factory LangGraph** (`orchestrate` → BA → architect → context → locator → QA author → coding → validation → security → PR). Optional dedicated orchestrator LLM agent split remains future work.
+**Status:** Shipped — rules-based orchestrator gates plus **full pipeline LangGraph** (`orchestrate` → BA → architect → context → locator → QA author → coding → validation → security → PR). Optional dedicated orchestrator LLM agent split remains future work.
 **Location:** `src/orchestration/` (current LangGraph node + policy) → `src/agents/orchestrator-agent.ts` (planned full split).
 **Model class:** Fast for deterministic routing and bookkeeping, balanced for normal planning, high-reasoning for ambiguous tasks and dynamic replanning. The current implementation uses **no LLM** — gates and classification are rules-based and unit-tested.
 
@@ -44,7 +44,7 @@ Coordinates the multi-agent workflow by deciding which specialist executes each 
 | `escalation` | object? | Escalation target and blocking context |
 | `finalSummary` | object? | Outcome, artifacts, and handoff links |
 
-## Current implementation (factory graph)
+## Current implementation (pipeline graph)
 
 The following sub-sections describe the orchestrator and LangGraph pipeline that ships today. They are the source of truth for the existing code path.
 
@@ -73,7 +73,7 @@ Alignment with `npm run dev:orchestrate-task`: `--repo-id`, `--task`, optional `
 - **`classifyTaskDescription`** maps text to `implementation` | `investigation` | `unknown` using keyword heuristics.
 - **`evaluateOrchestratorPolicy`** applies gates: `repoId` → non-empty task → classification. **No test-file gate at invoke** — `testFile` is populated by `author_tests` or CLI override.
 
-Downstream factory agents are **not** invoked when the decision is `skipped` or `blocked` at orchestrate.
+Downstream pipeline agents are **not** invoked when the decision is `skipped` or `blocked` at orchestrate.
 
 ### Decision and outcome shapes
 
@@ -81,14 +81,14 @@ Downstream factory agents are **not** invoked when the decision is `skipped` or 
 
 | `kind` | Meaning |
 | --- | --- |
-| `routed` | Proceed through factory head → coding tail |
+| `routed` | Proceed through pipeline head → coding tail |
 | `skipped` | Not actionable — codes: `empty_task`, `not_actionable`, `unsupported_task` |
 | `blocked` | Missing prerequisites at orchestrate — e.g. `missing_repo_id`, `token_budget_exceeded` |
 | `error` | Reserved for internal policy errors (`internal`) |
 
 After a full graph run, use **`deriveOrchestratorRunOutcomeFromSnapshot`** / **`parseOrchestratorRunOutcome`** ([`src/models/orchestration-graph.ts`](../../../src/models/orchestration-graph.ts)) to obtain `OrchestratorRunOutcomeSchema`:
 
-- Factory stage failures map to **`blocked`** with codes such as `needs_clarification`, `needs_decision`, `tests_author_failed`, `missing_test_file`.
+- Pipeline stage failures map to **`blocked`** with codes such as `needs_clarification`, `needs_decision`, `tests_author_failed`, `missing_test_file`.
 - **`routed`** includes `codingStatus` and, when coding succeeds, **`validationStatus`** from the validation agent.
 - BA **`needs_clarification`** → exit **2** (`blocked`) without sandbox or coding.
 
@@ -98,7 +98,7 @@ After a full graph run, use **`deriveOrchestratorRunOutcomeFromSnapshot`** / **`
 
 | Job status | Meaning | Operator action |
 | --- | --- | --- |
-| **`awaiting_input`** | Human-input gate fired; questions posted to origin ticket (when linked). Factory paused — **resumable**. | Edit ticket **page body**, then resume via CLI `--resume --job-id`, dev-console **Resume after clarification**, or **`CLARIFICATION_AUTO_RESUME`** Notion webhook path. |
+| **`awaiting_input`** | Human-input gate fired; questions posted to origin ticket (when linked). Pipeline paused — **resumable**. | Edit ticket **page body**, then resume via CLI `--resume --job-id`, dev-console **Resume after clarification**, or **`CLARIFICATION_AUTO_RESUME`** Notion webhook path. |
 | **`failed`** | Terminal error — infra blocks, exhausted clarification rounds (`clarification_exhausted`), validation/coding failure, or non-resumable gates. | Inspect `job_events`, fix root cause, start a new run or use checkpoint resume only when applicable. |
 
 Resume paths and ticket refresh before resume: [docs/systems/orchestration.md](../../systems/orchestration.md).
@@ -111,7 +111,7 @@ Resume paths and ticket refresh before resume: [docs/systems/orchestration.md](.
 
 ### Persistence (`jobs` / `job_events`)
 
-Factory milestone events include: `requirements_pack_ready`, `architecture_plan_ready`, `tests_located`, `tests_authored`, plus failure variants. See [`src/orchestration/README.md`](../../../src/orchestration/README.md).
+Pipeline milestone events include: `requirements_pack_ready`, `architecture_plan_ready`, `tests_located`, `tests_authored`, plus failure variants. See [`src/orchestration/README.md`](../../../src/orchestration/README.md).
 
 ## Target implementation (future orchestrator agent split)
 
@@ -123,11 +123,11 @@ No separate orchestrator LLM is configured in this plan. Optional future: `ORCHE
 - Can halt workflow on policy violations, repeated failures, or missing prerequisites.
 - Cannot override mandatory human approvals or governance constraints.
 - Must keep decisions explainable with concise rationale in state logs.
-- **Escalation policy:** factory head agents (BA, architect, QA author) self-resolve engineering and standards questions before emitting `needs_clarification` / `needs_decision`. **`internal_clarification`** classifies open questions by optional `suggestedRole` tags (with text heuristics fallback), delegates once per specialist role per stage, merges answers into graph state, and continues the pipeline when all questions resolve. Human origin-ticket posts are **last resort** for product intent, compliance, ownership, and unresolvable contradictions — only residual human-bound questions reach **`clarification_feedback`**. Internal loops are capped by **`CLARIFICATION_INTERNAL_MAX_ROUNDS`** (default **1**); exceeding the cap forces the human path.
+- **Escalation policy:** pipeline head agents (BA, architect, QA author) self-resolve engineering and standards questions before emitting `needs_clarification` / `needs_decision`. **`internal_clarification`** classifies open questions by optional `suggestedRole` tags (with text heuristics fallback), delegates once per specialist role per stage, merges answers into graph state, and continues the pipeline when all questions resolve. Human origin-ticket posts are **last resort** for product intent, compliance, ownership, and unresolvable contradictions — only residual human-bound questions reach **`clarification_feedback`**. Internal loops are capped by **`CLARIFICATION_INTERNAL_MAX_ROUNDS`** (default **1**); exceeding the cap forces the human path.
 
 ## Failure modes and escalation
 
-Factory-level escalation (planned multi-specialist orchestrator):
+Pipeline-level escalation (planned multi-specialist orchestrator):
 
 - Conflicting specialist outputs → request targeted reconciliation pass (prefer **`internal_clarification`** before human ticket).
 - Repeated failures beyond retry budget → escalate to human operator.
@@ -143,7 +143,7 @@ Operator view (current implementation):
 | `skipped` + `unsupported_task` | No implementation-style keywords |
 | `blocked` + `needs_clarification` | BA could not proceed — job may be **`awaiting_input`**; check dev-console or `job_events` for clarification questions |
 | `blocked` + `tests_author_failed` | QA author did not produce a test file |
-| Context/coding never called | Gate or factory head returned terminal outcome — check `orchestratorDecision` and factory outputs on the snapshot |
+| Context/coding never called | Gate or pipeline head returned terminal outcome — check `orchestratorDecision` and pipeline outputs on the snapshot |
 
 ## Skills
 

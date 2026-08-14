@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Cursor plugin — multi-agent SDLC factory with execution plan drain CLI",
+  "description": "Cursor plugin — multi-agent SDLC kit with execution plan drain CLI",
   "bin": {
     "agent-sdlc-drain": "./bin/agent-sdlc-drain.mjs"
   },

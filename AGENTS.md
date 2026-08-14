@@ -39,7 +39,7 @@ Agent runbook for the agent-sdlc Cursor plugin repository. Human docs live in [R
 - Never commit `CURSOR_API_KEY` or other secrets
 - `.agent-sdlc/` is gitignored — do not force-add dispatch state
 
-## SDLC factory
+## SDLC kit
 
 - Use `/sdlc` for the full ticket-to-PR pipeline in Agent chat
 - Use `/execution-plan-dispatch` to advance numbered plans under `docs/execution-plans/`

@@ -2,7 +2,7 @@
 
 Packages validated work into review-ready pull/merge requests on **whichever VCS provider the target project uses** (GitHub / GitLab / Bitbucket / Gitea) and updates the originating task system (Jira / Notion / Trello / Linear) with traceable release metadata. Provider selection is driven by `projectProfile`, not hardcoded to GitHub.
 
-**Status:** Planned — final factory stage; closes the loop from ticket to reviewable change.
+**Status:** Planned — final pipeline stage; closes the loop from ticket to reviewable change.
 **Location:** `src/agents/pr-agent.ts` (planned)
 **Model class:** Fast for formatting and metadata tasks, balanced for PR narrative synthesis and change-risk communication.
 

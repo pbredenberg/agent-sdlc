@@ -5,13 +5,13 @@
     "email": "slowlypoorly@gmail.com"
   },
   "metadata": {
-    "description": "Agent SDLC factory plugin — /sdlc slash command plus specialist skills and agents."
+    "description": "Agent SDLC kit plugin — /sdlc slash command plus specialist skills and agents."
   },
   "plugins": [
     {
       "name": "agent-sdlc",
       "source": ".",
-      "description": "Multi-agent SDLC factory: /sdlc orchestrated pipeline and specialist skills"
+      "description": "Multi-agent SDLC kit: /sdlc orchestrated pipeline and specialist skills"
     }
   ]
 }

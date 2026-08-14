@@ -1,8 +1,8 @@
 # QA Engineer
 
-Owns test authoring **and** validation across the factory pipeline. Writes the test files the coding agent iterates against, and later verifies that the implementation meets functional + non-functional acceptance criteria. Operates against the target project's own test runner — detected via `projectProfile`, not assumed.
+Owns test authoring **and** validation across the SDLC pipeline. Writes the test files the coding agent iterates against, and later verifies that the implementation meets functional + non-functional acceptance criteria. Operates against the target project's own test runner — detected via `projectProfile`, not assumed.
 
-**Status:** Partial — **`author_tests`** ships in the full factory graph (`src/agents/qa-test-authoring-agent.ts`, `src/orchestration/run-author-tests-node.ts`). Post-implementation **`validate_changes`** remains deferred; the **validation agent** node absorbs the post-coding gate today.
+**Status:** Partial — **`author_tests`** ships in the full pipeline graph (`src/agents/qa-test-authoring-agent.ts`, `src/orchestration/run-author-tests-node.ts`). Post-implementation **`validate_changes`** remains deferred; the **validation agent** node absorbs the post-coding gate today.
 **Location:** `src/agents/qa-test-authoring-agent.ts` (authoring); validation agent handles post-coding gate today.
 **Model class:** Fast for triage and report formatting, balanced for test authoring and analysis, high-reasoning for flaky diagnostics and coverage gap analysis.
 
@@ -84,7 +84,7 @@ Optional env: **`QA_TEST_AUTHOR_MODEL`** (defaults to `claude-sonnet-4-6`; share
 
 ## Ticket clarification feedback
 
-When **`author_tests`** returns qualifying **`blocked`** (missing acceptance input — not infra blocks such as **`forbidden_path`**), the factory routes through **`internal_clarification`** first; residual human-bound questions post to the **origin ticket** and pause in **`awaiting_input`**. Operators update the ticket page body or Notion comment thread and resume. See [docs/systems/orchestration.md](../../systems/orchestration.md).
+When **`author_tests`** returns qualifying **`blocked`** (missing acceptance input — not infra blocks such as **`forbidden_path`**), the kit routes through **`internal_clarification`** first; residual human-bound questions post to the **origin ticket** and pause in **`awaiting_input`**. Operators update the ticket page body or Notion comment thread and resume. See [docs/systems/orchestration.md](../../systems/orchestration.md).
 
 ## Skills
 

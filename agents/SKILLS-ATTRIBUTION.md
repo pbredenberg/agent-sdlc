@@ -63,7 +63,7 @@ The SKILL.md of each of these makes its primary instruction "run `python3 script
 | `ux-researcher-designer` | `business-analyst/skills/` |
 | `changelog-generator` | `pr-agent/skills/` |
 
-For security and DevOps capabilities previously covered by these skills, the factory relies on **ecosystem-native tooling invoked through the target project's profile** (e.g. `npm audit`, `pip-audit`, `cargo audit`, `govulncheck`, `gitleaks`, `trufflehog`, standard `kubectl`/Helm commands). That keeps the engine portable across any project stack.
+For security and DevOps capabilities previously covered by these skills, the kit relies on **ecosystem-native tooling invoked through the target project's profile** (e.g. `npm audit`, `pip-audit`, `cargo audit`, `govulncheck`, `gitleaks`, `trufflehog`, standard `kubectl`/Helm commands). That keeps the engine portable across any project stack.
 
 ## Never imported (link-only sources)
 

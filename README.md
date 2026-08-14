@@ -6,7 +6,7 @@ Cursor plugin that turns this multi-agent SDLC kit into an invokable slash comma
 
 | Invoke | What it does |
 | --- | --- |
-| `/sdlc` | Runs the full factory pipeline against the **current** workspace (orchestrate → BA → architecture → context → QA → implement → validate → security/DevOps → PR) |
+| `/sdlc` | Runs the full SDLC pipeline against the **current** workspace (orchestrate → BA → architecture → context → QA → implement → validate → security/DevOps → PR) |
 | `/execution-plan-dispatch` | Dispatches numbered execution plans one plan per fresh agent |
 | `/workflow-orchestrator-routing`, `/pr-packager`, … | Individual specialist skills (also listed under Customize → Skills) |
 
