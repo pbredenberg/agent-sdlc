@@ -26,6 +26,9 @@ Options:
   --max-parallel <n> Max concurrent agents per batch (default: 1)
   --dry-run          Print handoff(s) only; no SDK calls
   --skip-acceptance  Skip npm test/typecheck/lint and commit gate
+
+Acceptance gates auto-repair common environment failures (missing deps,
+stale Next.js .next/types) once before failing a plan.
   --help             Show this help
 
 Environment:
