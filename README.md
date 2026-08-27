@@ -248,7 +248,7 @@ Plans are written to `docs/execution-plans/<phase>/` with YAML frontmatter (`dep
 /execution-plan-dispatch What's next for phase rate-limit-api?
 ```
 
-Paste the handoff into a **new** Agent chat. The implementing agent commits with `exec-plan(<phase>): <title>` and deletes the plan file.
+Paste the handoff into a **new** Agent chat. The implementing agent commits with `exec-plan(<phase>): <title>` and deletes the plan file. Handoffs prepend a mandatory commit mandate (overrides `AGENTS.md` "do not commit" policy). From a clean working tree, the drain CLI auto-commits if the agent forgets.
 
 ### Drain (unattended CLI)
 

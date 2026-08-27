@@ -7,6 +7,10 @@ export type CommitGateInput = {
   phase: string;
   baseHead: string;
   planTitle?: string;
+  planRelativePath?: string;
+  /** When true, auto-commit agent changes if the batch started with a clean tree. */
+  allowAutoCommit?: boolean;
+  batchStartedClean?: boolean;
 };
 
 type GitLogEntry = {
@@ -63,6 +67,139 @@ export function isGitRepo(repoRoot: string): boolean {
   return result.ok;
 }
 
+export function isWorkingTreeClean(repoRoot: string): boolean {
+  const result = runGit(["status", "--porcelain"], repoRoot);
+  if (!result.ok) {
+    return false;
+  }
+  return result.stdout === "";
+}
+
+export function describeWorkingTree(repoRoot: string): string {
+  const status = runGit(["status", "--porcelain"], repoRoot);
+  if (!status.ok) {
+    return "could not read git status";
+  }
+  if (status.stdout === "") {
+    return "working tree clean";
+  }
+  const lines = status.stdout.split("\n");
+  const preview = lines.slice(0, 12).join("\n");
+  const suffix = lines.length > 12 ? `\n... and ${lines.length - 12} more` : "";
+  return `${lines.length} uncommitted change(s):\n${preview}${suffix}`;
+}
+
+export function buildExecPlanCommitMessage(phase: string, planTitle: string): string {
+  return `exec-plan(${phase}): ${planTitle}`;
+}
+
+export function syncRepoFromRemote(
+  repoRoot: string,
+  log?: (message: string) => void,
+): void {
+  const branchResult = runGit(["rev-parse", "--abbrev-ref", "HEAD"], repoRoot);
+  if (!branchResult.ok || branchResult.stdout === "" || branchResult.stdout === "HEAD") {
+    return;
+  }
+
+  const branch = branchResult.stdout;
+  const fetchResult = runGit(["fetch", "origin", branch], repoRoot);
+  if (!fetchResult.ok) {
+    return;
+  }
+
+  const remoteRef = `origin/${branch}`;
+  const behindResult = runGit(["rev-list", "--count", `HEAD..${remoteRef}`], repoRoot);
+  if (!behindResult.ok) {
+    return;
+  }
+
+  const behindCount = Number.parseInt(behindResult.stdout, 10);
+  if (!Number.isFinite(behindCount) || behindCount <= 0) {
+    return;
+  }
+
+  const mergeResult = runGit(["merge", "--ff-only", remoteRef], repoRoot);
+  if (mergeResult.ok) {
+    log?.(`Fast-forwarded ${behindCount} commit(s) from ${remoteRef}`);
+    return;
+  }
+
+  log?.(`Could not fast-forward from ${remoteRef}: ${mergeResult.stderr || mergeResult.stdout}`);
+}
+
+function attemptAutoCommitForPlan(input: CommitGateInput): CommitGateResult | null {
+  if (input.allowAutoCommit !== true || input.batchStartedClean !== true) {
+    return null;
+  }
+
+  if (input.planTitle === undefined || input.planTitle === "") {
+    return null;
+  }
+
+  if (isWorkingTreeClean(input.repoRoot)) {
+    return null;
+  }
+
+  const message = buildExecPlanCommitMessage(input.phase, input.planTitle);
+  const addResult = runGit(["add", "-A"], input.repoRoot);
+  if (!addResult.ok) {
+    return {
+      ok: false,
+      reason: "auto-commit failed at git add",
+      details: addResult.stderr || addResult.stdout,
+    };
+  }
+
+  const commitResult = runGit(["commit", "-m", message], input.repoRoot);
+  if (!commitResult.ok) {
+    return {
+      ok: false,
+      reason: "auto-commit failed at git commit",
+      details: commitResult.stderr || commitResult.stdout,
+    };
+  }
+
+  const sha = getHeadSha(input.repoRoot);
+  if (sha === null) {
+    return {
+      ok: false,
+      reason: "auto-commit succeeded but HEAD is unreadable",
+    };
+  }
+
+  return {
+    ok: true,
+    commitSha: sha,
+    commitMessage: message,
+    autoCommitted: true,
+  };
+}
+
+function buildNoCommitDetails(input: CommitGateInput): string {
+  const parts = [`HEAD is still ${input.baseHead}`];
+  const treeSummary = describeWorkingTree(input.repoRoot);
+  parts.push(treeSummary);
+
+  if (input.batchStartedClean === false) {
+    parts.push(
+      "The working tree was dirty before this batch; auto-commit was skipped. Start from a clean tree or commit manually.",
+    );
+  }
+
+  if (isWorkingTreeClean(input.repoRoot)) {
+    parts.push(
+      "No uncommitted changes detected. The agent may have finished without changing the repo, or changes were pushed to a remote branch only.",
+    );
+  } else {
+    parts.push(
+      "The agent left uncommitted changes. Re-run after committing with exec-plan(<phase>): <title>, or start the next drain from a clean tree so auto-commit can apply.",
+    );
+  }
+
+  return parts.join("\n");
+}
+
 export function verifyCommitForPlan(input: CommitGateInput): CommitGateResult {
   if (!isGitRepo(input.repoRoot)) {
     return {
@@ -78,10 +215,15 @@ export function verifyCommitForPlan(input: CommitGateInput): CommitGateResult {
   }
 
   if (currentHead === input.baseHead) {
+    const autoCommit = attemptAutoCommitForPlan(input);
+    if (autoCommit !== null) {
+      return autoCommit;
+    }
+
     return {
       ok: false,
       reason: "no new commit since batch start",
-      details: `HEAD is still ${input.baseHead}`,
+      details: buildNoCommitDetails(input),
     };
   }
 

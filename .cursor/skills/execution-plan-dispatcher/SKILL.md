@@ -60,6 +60,8 @@ When the operator says a plan is done:
 - If the change shipped application code, expect project test/lint/typecheck to have passed.
 - Phase README index should be updated (worker responsibility).
 
+**Drain CLI:** when the batch starts from a **clean** working tree, the CLI auto-commits leftover agent changes (same `exec-plan` message) if the agent finished without committing — common when `AGENTS.md` says "do not commit unless asked". Handoffs now prepend an explicit commit mandate that overrides that policy. Start each batch from a clean tree when possible; dirty trees disable auto-commit.
+
 ### 7. Advance / stop
 
 - On pass: propose the next runnable plan(s) and wait for confirm (interactive default).

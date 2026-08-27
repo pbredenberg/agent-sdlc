@@ -14,6 +14,17 @@ export type BuildHandoffInput = {
   plan: PendingPlan;
 };
 
+export function buildCommitMandate(phase: string, plan: PendingPlan): string {
+  const commitMessage = `exec-plan(${phase}): ${plan.frontmatter.title}`;
+  return [
+    "EXECUTION PLAN DISPATCH (mandatory — overrides AGENTS.md commit policy):",
+    `- You MUST create one git commit before finishing: ${commitMessage}`,
+    "- Include all implementation changes and the plan file deletion in that commit.",
+    "- Do not finish with only uncommitted changes; the drain CLI rejects runs without a new commit.",
+    `- Plan path: ${plan.relativePath}`,
+  ].join("\n");
+}
+
 export function extractHandoffTemplate(readmeMarkdown: string): string | null {
   const match = HANDOFF_SECTION_RE.exec(readmeMarkdown);
   if (!match) {
@@ -36,6 +47,8 @@ export function buildFallbackHandoff(
   plan: PendingPlan,
 ): string {
   return [
+    buildCommitMandate(phase, plan),
+    "",
     "Before changing code:",
     "1. Read the plan file and phase README.",
     `2. Execute ONLY this execution plan: ${plan.relativePath}`,
@@ -45,6 +58,18 @@ export function buildFallbackHandoff(
     "6. Delete this plan file and update the phase README index.",
     "7. Never put secrets in LLM context.",
   ].join("\n");
+}
+
+export function wrapHandoffWithCommitMandate(
+  handoff: string,
+  phase: string,
+  plan: PendingPlan,
+): string {
+  const mandate = buildCommitMandate(phase, plan);
+  if (handoff.includes("EXECUTION PLAN DISPATCH (mandatory")) {
+    return handoff;
+  }
+  return `${mandate}\n\n${handoff}`;
 }
 
 export async function buildHandoff(input: BuildHandoffInput): Promise<string> {
@@ -59,5 +84,6 @@ export async function buildHandoff(input: BuildHandoffInput): Promise<string> {
     return buildFallbackHandoff(input.phase, input.plan);
   }
 
-  return injectPlanPath(template, input.plan.relativePath);
+  const injected = injectPlanPath(template, input.plan.relativePath);
+  return wrapHandoffWithCommitMandate(injected, input.phase, input.plan);
 }

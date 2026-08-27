@@ -2,7 +2,7 @@ import { buildHandoff } from "./build-handoff.js";
 import { createDispatchState, writeDispatchState } from "./dispatch-state.js";
 import { runAcceptanceGate } from "./acceptance-gate.js";
 import { ensureWorkspaceReady } from "./workspace-repair.js";
-import { getHeadSha } from "./commit-gate.js";
+import { getHeadSha, isWorkingTreeClean, syncRepoFromRemote } from "./commit-gate.js";
 import {
   countPendingByPhase,
   formatCrossPhaseBlockMessage,
@@ -225,6 +225,16 @@ async function drainOnePhase(
       return { code: EXIT_STARTUP, completed };
     }
 
+    const batchStartedClean = baseHead === null
+      ? false
+      : isWorkingTreeClean(options.cwd);
+
+    if (!batchStartedClean && !options.skipAcceptance) {
+      log(
+        "Warning: working tree is not clean before this batch. Auto-commit fallback is disabled; the agent must commit explicitly.",
+      );
+    }
+
     log(
       `Running batch of ${plansToRun.length} plan(s): ${plansToRun.map((p) => p.relativePath).join(", ")}`,
     );
@@ -238,7 +248,14 @@ async function drainOnePhase(
       return { code: EXIT_STARTUP, completed };
     }
 
-    const runExit = await runBatch(options, plansToRun, baseHead ?? "", deps, log);
+    const runExit = await runBatch(
+      options,
+      plansToRun,
+      baseHead ?? "",
+      batchStartedClean,
+      deps,
+      log,
+    );
     if (runExit !== EXIT_OK) {
       return { code: runExit, completed };
     }
@@ -370,6 +387,7 @@ async function runBatch(
   options: PhaseDrainOptions,
   plans: PendingPlan[],
   baseHead: string,
+  batchStartedClean: boolean,
   deps: DrainDeps,
   log: (message: string) => void,
 ): Promise<number> {
@@ -408,11 +426,15 @@ async function runBatch(
     if (!result.ok) {
       continue;
     }
+
+    syncRepoFromRemote(options.cwd, log);
+
     const acceptance = runAcceptanceGate({
       repoRoot: options.cwd,
       phase: options.phase,
       plan: result.plan,
       baseHead,
+      batchStartedClean,
       skipScripts: options.skipAcceptance,
       skipCommit: options.skipAcceptance,
       log,

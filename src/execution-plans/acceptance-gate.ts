@@ -16,6 +16,7 @@ export type AcceptanceGateInput = {
   phase: string;
   plan: PendingPlan;
   baseHead: string;
+  batchStartedClean?: boolean;
   skipScripts?: boolean;
   skipCommit?: boolean;
   log?: (message: string) => void;
@@ -75,6 +76,9 @@ export function runAcceptanceGate(input: AcceptanceGateInput): AcceptanceGateRes
       phase: input.phase,
       baseHead: input.baseHead,
       planTitle: input.plan.frontmatter.title,
+      planRelativePath: input.plan.relativePath,
+      allowAutoCommit: true,
+      batchStartedClean: input.batchStartedClean,
     });
 
     if (!commitResult.ok) {
@@ -83,6 +87,12 @@ export function runAcceptanceGate(input: AcceptanceGateInput): AcceptanceGateRes
         reason: commitResult.reason,
         details: commitResult.details,
       };
+    }
+
+    if (commitResult.autoCommitted === true) {
+      input.log?.(
+        `Auto-committed agent changes as ${commitResult.commitMessage}`,
+      );
     }
   }
 
