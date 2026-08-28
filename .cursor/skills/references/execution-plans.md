@@ -39,6 +39,8 @@ parallel_group: null
 3. Commit: `exec-plan(<phase>): <title>` (use `exec-plan(.): <title>` for root plans)
 4. Delete plan file; update phase README index
 
+**Drain workers:** handoffs include a mandatory commit block that overrides `AGENTS.md` "do not commit unless asked". The drain CLI also auto-commits from a clean working tree when an agent ships changes but forgets to commit.
+
 Deleted plan files count as **completed** dependencies for remaining plans in the same phase.
 
 ## Cross-phase ordering (`phases.yaml`)

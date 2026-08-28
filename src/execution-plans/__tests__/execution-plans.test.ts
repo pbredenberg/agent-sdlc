@@ -11,6 +11,7 @@ import {
 import {
   extractHandoffTemplate,
   injectPlanPath,
+  wrapHandoffWithCommitMandate,
 } from "../build-handoff.js";
 import type { PendingPlan } from "../types.js";
 
@@ -137,5 +138,17 @@ describe("buildHandoff", () => {
     expect(injectPlanPath(template, "docs/execution-plans/phase/01-a.md")).toBe(
       "Path: docs/execution-plans/phase/01-a.md",
     );
+  });
+
+  it("prepends commit mandate to phase handoffs", () => {
+    const plan = makePlan(2, "02-b", ["01-a"]);
+    const wrapped = wrapHandoffWithCommitMandate(
+      "Execute ONLY this execution plan: docs/execution-plans/test/02-b.md",
+      "test",
+      plan,
+    );
+    expect(wrapped).toContain("EXECUTION PLAN DISPATCH (mandatory");
+    expect(wrapped).toContain("exec-plan(test): 02-b");
+    expect(wrapped).toContain("overrides AGENTS.md");
   });
 });

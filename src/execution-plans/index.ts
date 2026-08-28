@@ -17,10 +17,12 @@ export {
 } from "./dependency-graph.js";
 export { selectRunnableBatch, listDryRunBatches } from "./select-runnable.js";
 export {
+  buildCommitMandate,
   buildFallbackHandoff,
   buildHandoff,
   extractHandoffTemplate,
   injectPlanPath,
+  wrapHandoffWithCommitMandate,
 } from "./build-handoff.js";
 export {
   parseFrontmatter,
@@ -42,8 +44,12 @@ export {
   runWorkspaceRepair,
 } from "./workspace-repair.js";
 export {
+  buildExecPlanCommitMessage,
+  describeWorkingTree,
   getHeadSha,
   isGitRepo,
+  isWorkingTreeClean,
+  syncRepoFromRemote,
   verifyCommitForPlan,
   verifyCommitForPlans,
 } from "./commit-gate.js";

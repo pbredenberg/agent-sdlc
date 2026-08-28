@@ -48,7 +48,7 @@ export type AcceptanceGateResult =
   | { ok: false; reason: string; details?: string };
 
 export type CommitGateResult =
-  | { ok: true; commitSha: string; commitMessage: string }
+  | { ok: true; commitSha: string; commitMessage: string; autoCommitted?: boolean }
   | { ok: false; reason: string; details?: string };
 
 export type DrainCliOptions = {
