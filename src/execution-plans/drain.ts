@@ -1,6 +1,6 @@
 import { buildHandoff } from "./build-handoff.js";
+import { runAcceptanceWithRepair } from "./acceptance-repair.js";
 import { createDispatchState, writeDispatchState } from "./dispatch-state.js";
-import { runAcceptanceGate } from "./acceptance-gate.js";
 import { ensureWorkspaceReady } from "./workspace-repair.js";
 import { getHeadSha, isWorkingTreeClean, syncRepoFromRemote } from "./commit-gate.js";
 import {
@@ -429,33 +429,41 @@ async function runBatch(
 
     syncRepoFromRemote(options.cwd, log);
 
-    const acceptance = runAcceptanceGate({
-      repoRoot: options.cwd,
-      phase: options.phase,
-      plan: result.plan,
-      baseHead,
-      batchStartedClean,
-      skipScripts: options.skipAcceptance,
-      skipCommit: options.skipAcceptance,
+    const acceptanceOk = await runAcceptanceWithRepair(
+      {
+        repoRoot: options.cwd,
+        phase: options.phase,
+        plan: result.plan,
+        baseHead,
+        batchStartedClean,
+        skipAcceptance: options.skipAcceptance,
+        maxAcceptanceRetries: options.maxAcceptanceRetries,
+        apiKey: options.apiKey as string,
+        model: options.model,
+        agentId: result.agentId,
+        runId: result.runId,
+      },
+      async (repairHandoff) => {
+        const repairRun = await runOneAgent(
+          options,
+          result.plan,
+          repairHandoff,
+          deps,
+          log,
+        );
+        if (!repairRun.ok) {
+          return { ok: false };
+        }
+        return {
+          ok: true,
+          agentId: repairRun.agentId,
+          runId: repairRun.runId,
+        };
+      },
       log,
-    });
+    );
 
-    if (!acceptance.ok) {
-      log(`Acceptance failed for ${result.plan.relativePath}: ${acceptance.reason}`);
-      if (acceptance.details) {
-        log(acceptance.details);
-      }
-      await writeDispatchState(
-        options.cwd,
-        createDispatchState({
-          phase: options.phase,
-          planRelativePaths: [result.plan.relativePath],
-          status: "blocked",
-          agentIds: result.agentId ? [result.agentId] : [],
-          runIds: result.runId ? [result.runId] : [],
-          message: acceptance.reason,
-        }),
-      );
+    if (!acceptanceOk) {
       return EXIT_ACCEPTANCE;
     }
 

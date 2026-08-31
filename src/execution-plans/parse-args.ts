@@ -24,11 +24,16 @@ Options:
   --model <id>       Model id (default: ${DEFAULT_MODEL})
   --max-plans <n>    Stop after N successful plans (across phases when --all-phases)
   --max-parallel <n> Max concurrent agents per batch (default: 1)
+  --max-acceptance-retries <n>
+                     Repair agents to dispatch when test/typecheck/lint or
+                     commit/plan acceptance checks fail after a plan agent
+                     finishes (default: 2; use 0 to disable)
   --dry-run          Print handoff(s) only; no SDK calls
   --skip-acceptance  Skip npm test/typecheck/lint and commit gate
 
 Acceptance gates auto-repair common environment failures (missing deps,
-stale Next.js .next/types) once before failing a plan.
+stale Next.js .next/types) once, then dispatch repair agents for script or
+commit/plan failures up to --max-acceptance-retries before exiting.
   --help             Show this help
 
 Environment:
@@ -49,6 +54,7 @@ export function parseDrainArgs(argv: string[]): DrainCliOptions {
   let model = DEFAULT_MODEL;
   let maxPlans: number | null = null;
   let maxParallel = 1;
+  let maxAcceptanceRetries = 2;
   let dryRun = false;
   let skipAcceptance = false;
 
@@ -100,6 +106,15 @@ export function parseDrainArgs(argv: string[]): DrainCliOptions {
       maxParallel = parsed;
       continue;
     }
+    if (arg === "--max-acceptance-retries") {
+      const raw = requireValue(arg, argv[++i]);
+      const parsed = Number.parseInt(raw, 10);
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        throw new Error(`--max-acceptance-retries must be a non-negative integer, got: ${raw}`);
+      }
+      maxAcceptanceRetries = parsed;
+      continue;
+    }
     throw new Error(`Unknown argument: ${arg}`);
   }
 
@@ -110,6 +125,7 @@ export function parseDrainArgs(argv: string[]): DrainCliOptions {
     model,
     maxPlans,
     maxParallel,
+    maxAcceptanceRetries,
     dryRun,
     skipAcceptance,
   });
@@ -122,6 +138,7 @@ export function finalizeDrainArgs(input: {
   model: string;
   maxPlans: number | null;
   maxParallel: number;
+  maxAcceptanceRetries: number;
   dryRun: boolean;
   skipAcceptance: boolean;
 }): DrainCliOptions {
@@ -146,6 +163,7 @@ export function finalizeDrainArgs(input: {
     model: input.model,
     maxPlans: input.maxPlans,
     maxParallel: input.maxParallel,
+    maxAcceptanceRetries: input.maxAcceptanceRetries,
     dryRun: input.dryRun,
     skipAcceptance: input.skipAcceptance,
     apiKey: process.env.CURSOR_API_KEY?.trim() || null,
