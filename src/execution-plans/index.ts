@@ -36,7 +36,9 @@ export {
   classifyAcceptanceFailure,
   extractFailedScript,
   isRepairableAcceptanceFailure,
+  shouldSkipCommitOnRetry,
 } from "./classify-acceptance-failure.js";
+export type { AcceptanceFailureKind } from "./classify-acceptance-failure.js";
 export { runAcceptanceWithRepair } from "./acceptance-repair.js";
 export type { AcceptanceRepairInput, RunAgentFn } from "./acceptance-repair.js";
 export {

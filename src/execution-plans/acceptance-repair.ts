@@ -1,5 +1,9 @@
 import { buildAcceptanceRepairHandoff } from "./build-acceptance-repair-handoff.js";
-import { isRepairableAcceptanceFailure } from "./classify-acceptance-failure.js";
+import {
+  classifyAcceptanceFailure,
+  isRepairableAcceptanceFailure,
+  shouldSkipCommitOnRetry,
+} from "./classify-acceptance-failure.js";
 import { runAcceptanceGate } from "./acceptance-gate.js";
 import { syncRepoFromRemote } from "./commit-gate.js";
 import { createDispatchState, writeDispatchState } from "./dispatch-state.js";
@@ -66,7 +70,8 @@ export async function runAcceptanceWithRepair(
     }
 
     syncRepoFromRemote(input.repoRoot, log);
-    acceptance = runRetryAcceptance(input, log);
+    const failureKind = classifyAcceptanceFailure(acceptance);
+    acceptance = runRetryAcceptance(input, failureKind, log);
   }
 
   if (acceptance.ok) {
@@ -100,6 +105,7 @@ function runInitialAcceptance(
 
 function runRetryAcceptance(
   input: AcceptanceRepairInput,
+  failureKind: ReturnType<typeof classifyAcceptanceFailure>,
   log: (message: string) => void,
 ): AcceptanceGateResult {
   return runAcceptanceGate({
@@ -109,7 +115,7 @@ function runRetryAcceptance(
     baseHead: input.baseHead,
     batchStartedClean: input.batchStartedClean,
     skipScripts: input.skipAcceptance,
-    skipCommit: true,
+    skipCommit: shouldSkipCommitOnRetry(failureKind),
     log,
   });
 }

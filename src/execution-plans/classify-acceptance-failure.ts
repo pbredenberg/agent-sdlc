@@ -52,7 +52,14 @@ export function classifyAcceptanceFailure(
 export function isRepairableAcceptanceFailure(
   result: Extract<AcceptanceGateResult, { ok: false }>,
 ): boolean {
-  return classifyAcceptanceFailure(result) === "script_failure";
+  const kind = classifyAcceptanceFailure(result);
+  return kind === "script_failure"
+    || kind === "commit_failure"
+    || kind === "plan_failure";
+}
+
+export function shouldSkipCommitOnRetry(kind: AcceptanceFailureKind): boolean {
+  return kind === "script_failure";
 }
 
 export function extractFailedScript(reason: string): string | null {

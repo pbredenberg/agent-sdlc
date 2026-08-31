@@ -3,6 +3,7 @@ import {
   classifyAcceptanceFailure,
   extractFailedScript,
   isRepairableAcceptanceFailure,
+  shouldSkipCommitOnRetry,
 } from "../classify-acceptance-failure.js";
 
 describe("classifyAcceptanceFailure", () => {
@@ -32,22 +33,31 @@ describe("classifyAcceptanceFailure", () => {
     expect(classifyAcceptanceFailure(lint)).toBe("script_failure");
   });
 
-  it("classifies commit gate failures", () => {
+  it("classifies commit gate failures as repairable", () => {
     const result = {
       ok: false as const,
       reason: "no new commit since batch start",
     };
 
     expect(classifyAcceptanceFailure(result)).toBe("commit_failure");
-    expect(isRepairableAcceptanceFailure(result)).toBe(false);
+    expect(isRepairableAcceptanceFailure(result)).toBe(true);
   });
 
-  it("classifies plan file failures", () => {
+  it("classifies plan file failures as repairable", () => {
     const result = {
       ok: false as const,
       reason: "plan file still present: docs/execution-plans/example/01-a.md",
     };
 
     expect(classifyAcceptanceFailure(result)).toBe("plan_failure");
+    expect(isRepairableAcceptanceFailure(result)).toBe(true);
+  });
+});
+
+describe("shouldSkipCommitOnRetry", () => {
+  it("skips commit verification only after script failures", () => {
+    expect(shouldSkipCommitOnRetry("script_failure")).toBe(true);
+    expect(shouldSkipCommitOnRetry("commit_failure")).toBe(false);
+    expect(shouldSkipCommitOnRetry("plan_failure")).toBe(false);
   });
 });

@@ -123,24 +123,32 @@ describe("runAcceptanceWithRepair", () => {
     expect(runAcceptanceGate).toHaveBeenCalledTimes(2);
   });
 
-  it("does not dispatch repair for commit failures", async () => {
-    vi.mocked(runAcceptanceGate).mockReturnValue({
-      ok: false,
-      reason: "no new commit since batch start",
-    });
+  it("dispatches repair agent and retries with commit gate for commit failures", async () => {
+    vi.mocked(runAcceptanceGate)
+      .mockReturnValueOnce({
+        ok: false,
+        reason: "no new commit since batch start",
+        details: "working tree clean",
+      })
+      .mockReturnValueOnce({ ok: true });
 
-    let repairCalls = 0;
+    const repairPrompts: string[] = [];
+
     const result = await runAcceptanceWithRepair(
       makeInput(2),
-      async () => {
-        repairCalls += 1;
-        return { ok: true, agentId: null, runId: null };
+      async (prompt) => {
+        repairPrompts.push(prompt);
+        return { ok: true, agentId: "repair-agent", runId: "repair-run" };
       },
       () => {},
     );
 
-    expect(result).toBe(false);
-    expect(repairCalls).toBe(0);
-    expect(runAcceptanceGate).toHaveBeenCalledTimes(1);
+    expect(result).toBe(true);
+    expect(repairPrompts).toHaveLength(1);
+    expect(repairPrompts[0]).toContain("Your job (commit repair):");
+    expect(runAcceptanceGate).toHaveBeenCalledTimes(2);
+    expect(runAcceptanceGate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ skipCommit: false }),
+    );
   });
 });
