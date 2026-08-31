@@ -31,28 +31,44 @@ agents/                # Full role docs + role-organized skill copies
 
 Pick **one** path. Do not mix submodule + symlink setups — Cursor Cloud needs **real files** under `.cursor/skills/` (copies), not symlinks.
 
-Use the **`agent-sdlc-install`** CLI (ships with this repo) instead of hand-copying bash snippets:
+### Quick start
+
+| Goal | One command |
+| --- | --- |
+| Develop this plugin | `git clone … && cd agent-sdlc && npm run setup` |
+| Cloud environment build | `npm run install:cloud` |
+| Vendor full kit into an app | `npx github:pbredenberg/agent-sdlc vendor /path/to/app` |
+| Vendor from inside the app repo | `cd /path/to/app && npx github:pbredenberg/agent-sdlc vendor .` |
+| Global drain CLI | `npm run install:global-cli` |
+
+Use **`agent-sdlc-install`** (ships with this repo) or the npm scripts below — no multiline bash required.
 
 ```bash
-npm install
-npm run install:plugin -- --mode <mode> [options]
-# or after npm link: agent-sdlc-install --mode <mode>
+npm run setup                    # first-time dev setup (npm install + dev install)
+npm run install:dev              # copy skills + Desktop plugin link
+npm run install:cloud            # copy skills only (Cloud Agents)
+npm run vendor -- /path/to/app   # full kit into another repo
+npm run vendor:minimal -- .      # /sdlc only
 ```
 
-| Mode | Command | Use when |
+Positional CLI (same as the scripts):
+
+```bash
+agent-sdlc-install dev
+agent-sdlc-install vendor /path/to/app
+agent-sdlc-install vendor . --source-url https://github.com/pbredenberg/agent-sdlc.git
+```
+
+Legacy flag form still works: `npm run install:plugin -- --mode dev`.
+
+| Mode | Shortcut | Use when |
 | --- | --- | --- |
-| `dev` | `npm run install:plugin -- --mode dev` | Developing this plugin (copy + Desktop symlink) |
-| `cloud` | `npm run install:plugin -- --mode cloud` | Cloud environment builds (copy only) |
-| `desktop` | `npm run install:plugin -- --mode desktop` | Desktop local plugin symlink only |
-| `vendor-full` | `npm run install:plugin -- --mode vendor-full --target <app>` | Copy full kit into an app repo |
-| `vendor-minimal` | `npm run install:plugin -- --mode vendor-minimal --target <app>` | Copy `/sdlc` skill + command + cloud rule only |
-| `global-cli` | `npm run install:plugin -- --mode global-cli` | `npm link` for `agent-sdlc-drain` |
-
-Clone upstream into an app repo without a local checkout:
-
-```bash
-npm run install:plugin -- --mode vendor-full --target /path/to/app --source-url https://github.com/pbredenberg/agent-sdlc.git
-```
+| `dev` | `npm run install:dev` | Developing this plugin (copy + Desktop symlink) |
+| `cloud` | `npm run install:cloud` | Cloud environment builds (copy only) |
+| `desktop` | `npm run install:desktop` | Desktop local plugin symlink only |
+| `vendor-full` | `npm run vendor -- <app>` | Copy full kit into an app repo |
+| `vendor-minimal` | `npm run vendor:minimal -- <app>` | Copy `/sdlc` skill + command + cloud rule only |
+| `global-cli` | `npm run install:global-cli` | `npm link` for `agent-sdlc-drain` |
 
 | Path | Use when |
 | --- | --- |
@@ -64,15 +80,14 @@ npm run install:plugin -- --mode vendor-full --target /path/to/app --source-url 
 
 Cloud Agents do not use `~/.cursor/plugins/local/`. They discover skills from committed `.cursor/skills/` (real files, not symlinks). Slash palettes can be inconsistent — if `/sdlc` does not appear, type `/sdlc` in your prompt anyway (the `sdlc-kit` rule picks it up) or attach the **sdlc** skill from Customize → Skills.
 
-`.cursor/environment.json` in this repo runs `npm run install:plugin -- --mode cloud` at build time. **Also commit** `.cursor/skills/`, `.cursor/commands/`, and `.cursor/rules/` so indexing works before install finishes.
+`.cursor/environment.json` in this repo runs `npm run install:cloud` at build time. **Also commit** `.cursor/skills/`, `.cursor/commands/`, and `.cursor/rules/` so indexing works before install finishes.
 
 ### 1. Desktop — local plugin (all projects)
 
 ```bash
 git clone https://github.com/pbredenberg/agent-sdlc.git ~/src/agent-sdlc
 cd ~/src/agent-sdlc
-npm install
-npm run install:plugin -- --mode dev
+npm run setup
 ```
 
 Then in Cursor: **Developer: Reload Window**. Confirm `/sdlc` appears when you type `/` in Agent chat. Install the plugin at **user** scope in Customize so every local project sees it.
@@ -92,32 +107,21 @@ Then in Cursor: **Developer: Reload Window**. Confirm `/sdlc` appears when you t
 From the **application repository** root:
 
 ```bash
-# Full kit (pipeline + specialists + cloud /sdlc rule)
-git clone https://github.com/pbredenberg/agent-sdlc.git /tmp/agent-sdlc
-cd /tmp/agent-sdlc && npm install
-npm run install:plugin -- --mode vendor-full --target /path/to/your-app
-
-cd /path/to/your-app
+npx github:pbredenberg/agent-sdlc vendor .
 git add .cursor/skills .cursor/commands .cursor/rules
 git commit -m "chore: vendor agent-sdlc skills for Cursor"
 ```
 
-Or clone upstream in one step (no local agent-sdlc checkout):
+Or with a local agent-sdlc checkout:
 
 ```bash
-cd /path/to/your-app
-npx --yes github:pbredenberg/agent-sdlc agent-sdlc-install \
-  --mode vendor-full \
-  --target . \
-  --source-url https://github.com/pbredenberg/agent-sdlc.git
-git add .cursor/skills .cursor/commands .cursor/rules
-git commit -m "chore: vendor agent-sdlc skills for Cursor"
+npm run vendor -- /path/to/your-app
 ```
 
 Minimum (pipeline command only — specialists will be missing unless you copy them too):
 
 ```bash
-npm run install:plugin -- --mode vendor-minimal --target /path/to/your-app
+npm run vendor:minimal -- /path/to/your-app
 ```
 
 `AGENTS.md` at the app repo root is the agent runbook — `/sdlc` auto-generates and maintains it via `agents-md-author` (see [agents.md](https://agents.md/)).
@@ -127,8 +131,7 @@ npm run install:plugin -- --mode vendor-minimal --target /path/to/your-app
 ```bash
 git clone https://github.com/pbredenberg/agent-sdlc.git
 cd agent-sdlc
-npm install
-npm run install:plugin -- --mode dev
+npm run setup
 ```
 
 That command:
@@ -138,27 +141,26 @@ That command:
 3. Copies `rules/*.mdc` → `.cursor/rules/` (Cloud `/sdlc` fallback).
 4. Symlinks `~/.cursor/plugins/local/agent-sdlc` → this checkout for Desktop after reload.
 
-Re-run after adding a skill under `skills/`. Cloud Agents also run `npm run install:plugin -- --mode cloud` via `.cursor/environment.json`.
+Re-run `npm run install:dev` after adding a skill under `skills/`. Cloud Agents also run `npm run install:cloud` via `.cursor/environment.json`.
 
 ## Updating
 
-Use the same path you installed with.
+Use **`agent-sdlc-update`** or `npm run update` — profile is auto-detected.
+
+| Install method | Update command |
+| --- | --- |
+| Desktop local plugin (this repo) | `npm run update` |
+| Global `agent-sdlc-drain` | `npm run update:global-cli` |
+| Copied `.cursor/skills` in an app | `npx github:pbredenberg/agent-sdlc update --commit` |
+| Team Marketplace | Merge upstream; refresh plugin in Dashboard |
+
+Then **Developer: Reload Window** when Desktop commands look stale.
 
 ### Desktop local plugin
 
 ```bash
-cd ~/src/agent-sdlc   # path your ~/.cursor/plugins/local/agent-sdlc symlink points at
-git pull
-```
-
-Then **Developer: Reload Window**. Re-run the `ln -sfn` install only if you moved the clone.
-
-If you use the drain CLI globally, refresh the link after CLI changes:
-
-```bash
 cd ~/src/agent-sdlc
-npm install
-npm link
+npm run update
 ```
 
 ### Team Marketplace
@@ -171,42 +173,18 @@ No per-app-repo update is required for marketplace consumers.
 
 ### Copied skills in an app repo
 
-Re-run the vendor install, then commit. Example (full kit):
-
 ```bash
 cd /path/to/your-app
-npx --yes github:pbredenberg/agent-sdlc agent-sdlc-install \
-  --mode vendor-full \
-  --target . \
-  --source-url https://github.com/pbredenberg/agent-sdlc.git
-
-git add .cursor/skills .cursor/commands .cursor/rules
-git commit -m "chore: refresh agent-sdlc skills"
+npx github:pbredenberg/agent-sdlc update --commit
 ```
 
-Copied trees do not update themselves — each bump is a deliberate re-copy + commit.
+Add `--commit` to stage and commit the refreshed `.cursor` files in one step.
 
-### This repo (`install:plugin`)
+### This repo
 
 ```bash
-cd /path/to/agent-sdlc
-git pull
-npm install
-npm run install:plugin -- --mode dev
+npm run update
 ```
-
-Reload Cursor after the script finishes.
-
-### Quick reference
-
-| Install method | Update | Reload Cursor? |
-| --- | --- | --- |
-| Desktop local plugin | `git pull` in the clone (+ `npm link` if you use the drain CLI) | Yes |
-| Team Marketplace | Ship upstream; refresh plugin if needed | If commands look stale |
-| Copied `.cursor/skills` in an app | Re-copy from upstream + commit | Yes (Desktop); Cloud on next clone/PR |
-| `install:plugin --mode dev` (this repo) | `git pull` + re-run install | Yes |
-| `agent-sdlc-install` / `install:plugin` | See mode table above | Yes for dev/desktop |
-| Global `agent-sdlc-drain` | `git pull` + `npm install` + `npm link` in the clone | No |
 
 ## Usage
 
@@ -259,11 +237,10 @@ Plans live in the **app** repo under `docs/execution-plans/<phase>/`. The CLI sh
 ```bash
 git clone https://github.com/pbredenberg/agent-sdlc.git ~/src/agent-sdlc
 cd ~/src/agent-sdlc
-npm install
-npm run install:plugin -- --mode global-cli
+npm run install:global-cli
 ```
 
-That puts `agent-sdlc-drain` on your `PATH`. Re-run `npm install && npm link` after pulling CLI changes.
+That puts `agent-sdlc-drain` on your `PATH`. Refresh after pulling CLI changes with `npm run update:global-cli`.
 
 #### Run from any app repo
 

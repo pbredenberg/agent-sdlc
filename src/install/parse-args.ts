@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { installModeHelpLines, resolveInstallMode } from "./mode-aliases.js";
 import type { InstallMode, InstallOptions } from "./types.js";
 
 export type ParsedInstallArgs = InstallOptions & {
@@ -12,20 +13,17 @@ export function defaultSourceRoot(): string {
 }
 
 export function printInstallUsage(): void {
-  console.error(`Usage: agent-sdlc-install --mode <mode> [options]
-       npm run install:plugin -- --mode <mode> [options]
+  const modeLines = installModeHelpLines();
+  console.error(`Usage: agent-sdlc-install [mode] [target] [options]
+       npm run install:plugin -- [mode] [target] [options]
+       npm run setup | install:dev | install:cloud | vendor -- <target>
 
 Install agent-sdlc for Desktop, Cloud Agents, or application repositories.
 
-Modes:
-  dev              Copy skills/commands into this repo + Desktop local plugin link
-  cloud            Copy skills/commands only (Cloud Agents / environment builds)
-  desktop          Link ~/.cursor/plugins/local/agent-sdlc only
-  vendor-full      Copy full skills + commands into --target repo
-  vendor-minimal   Copy only /sdlc skill + command into --target repo
-  global-cli       npm install + npm link in the agent-sdlc checkout (drain CLI)
+${modeLines.join("\n")}
 
 Options:
+  --mode <mode>    Same as the first positional argument
   --source <path>  agent-sdlc checkout (default: this repository)
   --target <path>  Target repo root (default: --source; required for vendor-*)
   --source-url <url>
@@ -35,15 +33,22 @@ Options:
   --help           Show this help
 
 Examples:
-  npm run install:plugin -- --mode dev
-  npm run install:plugin -- --mode cloud
-  npm run install:plugin -- --mode vendor-full --target /path/to/app
-  npm run install:plugin -- --mode vendor-minimal --target /path/to/app
-  npm run install:plugin -- --mode global-cli
+  npm run setup
+  agent-sdlc-install dev
+  npm run install:cloud
+  agent-sdlc-install vendor /path/to/app
+  agent-sdlc-install vendor . --source-url https://github.com/pbredenberg/agent-sdlc.git
+  npm run install:global-cli
 `);
 }
 
+type SplitArgv = {
+  flagTokens: string[];
+  positionals: string[];
+};
+
 export function parseInstallArgs(argv: string[]): ParsedInstallArgs {
+  const split = splitArgv(argv);
   let mode: InstallMode | null = null;
   let sourceRoot = defaultSourceRoot();
   let targetRoot = sourceRoot;
@@ -51,8 +56,8 @@ export function parseInstallArgs(argv: string[]): ParsedInstallArgs {
   let dryRun = false;
   let help = false;
 
-  for (let i = 2; i < argv.length; i++) {
-    const arg = argv[i];
+  for (let i = 0; i < split.flagTokens.length; i++) {
+    const arg = split.flagTokens[i];
 
     if (arg === "--help" || arg === "-h") {
       help = true;
@@ -65,26 +70,34 @@ export function parseInstallArgs(argv: string[]): ParsedInstallArgs {
     }
 
     if (arg === "--mode") {
-      mode = parseMode(requireValue(arg, argv[++i]));
+      mode = resolveInstallMode(requireValue(arg, split.flagTokens[++i]));
       continue;
     }
 
     if (arg === "--source") {
-      sourceRoot = resolve(requireValue(arg, argv[++i]));
+      sourceRoot = resolve(requireValue(arg, split.flagTokens[++i]));
       continue;
     }
 
     if (arg === "--target") {
-      targetRoot = resolve(requireValue(arg, argv[++i]));
+      targetRoot = resolve(requireValue(arg, split.flagTokens[++i]));
       continue;
     }
 
     if (arg === "--source-url") {
-      sourceUrl = requireValue(arg, argv[++i]);
+      sourceUrl = requireValue(arg, split.flagTokens[++i]);
       continue;
     }
 
     throw new Error(`unknown argument: ${arg}`);
+  }
+
+  if (split.positionals[0]) {
+    mode = resolveInstallMode(split.positionals[0]);
+  }
+
+  if (split.positionals[1]) {
+    targetRoot = resolve(split.positionals[1]);
   }
 
   if (help) {
@@ -98,14 +111,11 @@ export function parseInstallArgs(argv: string[]): ParsedInstallArgs {
     };
   }
 
-  if (!mode) {
-    throw new Error("missing required --mode <mode>");
-  }
-
-  validateModeTargets(mode, sourceRoot, targetRoot);
+  const resolvedMode = mode ?? "dev";
+  validateModeTargets(resolvedMode, sourceRoot, targetRoot);
 
   return {
-    mode,
+    mode: resolvedMode,
     sourceRoot,
     targetRoot,
     sourceUrl,
@@ -114,21 +124,42 @@ export function parseInstallArgs(argv: string[]): ParsedInstallArgs {
   };
 }
 
-function parseMode(value: string): InstallMode {
-  const modes: InstallMode[] = [
-    "dev",
-    "cloud",
-    "desktop",
-    "vendor-full",
-    "vendor-minimal",
-    "global-cli",
-  ];
+function splitArgv(argv: string[]): SplitArgv {
+  const flagTokens: string[] = [];
+  const positionals: string[] = [];
+  const valueFlags = new Set([
+    "--mode",
+    "--source",
+    "--target",
+    "--source-url",
+  ]);
 
-  if (modes.includes(value as InstallMode)) {
-    return value as InstallMode;
+  for (let i = 2; i < argv.length; i++) {
+    const arg = argv[i];
+    const isFlag = arg.startsWith("-");
+
+    if (!isFlag) {
+      positionals.push(arg);
+      continue;
+    }
+
+    flagTokens.push(arg);
+
+    if (!valueFlags.has(arg)) {
+      continue;
+    }
+
+    const next = argv[i + 1];
+    const hasValue = Boolean(next) && !next.startsWith("-");
+    if (!hasValue) {
+      continue;
+    }
+
+    flagTokens.push(next);
+    i++;
   }
 
-  throw new Error(`invalid --mode ${value}`);
+  return { flagTokens, positionals };
 }
 
 function validateModeTargets(
@@ -141,7 +172,7 @@ function validateModeTargets(
   const sameTarget = sourceRoot === targetRoot;
 
   if (needsDistinctTarget && sameTarget) {
-    throw new Error(`${mode} requires --target <app-repo-root>`);
+    throw new Error(`${mode} requires a target path (second argument or --target)`);
   }
 }
 
