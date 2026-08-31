@@ -72,6 +72,7 @@ describe("finalizeDrainArgs", () => {
     model: "composer-2.5",
     maxPlans: null,
     maxParallel: 1,
+    maxAcceptanceRetries: 2,
     dryRun: true,
     skipAcceptance: false,
   };

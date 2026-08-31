@@ -59,6 +59,7 @@ export type DrainCliOptions = {
   model: string;
   maxPlans: number | null;
   maxParallel: number;
+  maxAcceptanceRetries: number;
   dryRun: boolean;
   skipAcceptance: boolean;
   apiKey: string | null;
