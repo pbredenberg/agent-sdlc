@@ -1,4 +1,4 @@
 {
   "name": "agent-sdlc",
-  "install": "npm install && npm run install:plugin -- --mode cloud"
+  "install": "npm install && npm run install:cloud"
 }

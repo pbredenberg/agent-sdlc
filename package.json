@@ -6,10 +6,20 @@
   "description": "Cursor plugin — multi-agent SDLC kit with execution plan drain CLI",
   "bin": {
     "agent-sdlc-drain": "./bin/agent-sdlc-drain.mjs",
-    "agent-sdlc-install": "./bin/agent-sdlc-install.mjs"
+    "agent-sdlc-install": "./bin/agent-sdlc-install.mjs",
+    "agent-sdlc-update": "./bin/agent-sdlc-update.mjs"
   },
   "scripts": {
+    "setup": "npm install && tsx ./scripts/install.ts dev",
     "install:plugin": "tsx ./scripts/install.ts",
+    "install:dev": "tsx ./scripts/install.ts dev",
+    "install:cloud": "tsx ./scripts/install.ts cloud",
+    "install:desktop": "tsx ./scripts/install.ts desktop",
+    "install:global-cli": "tsx ./scripts/install.ts global-cli",
+    "vendor": "tsx ./scripts/install.ts vendor-full",
+    "vendor:minimal": "tsx ./scripts/install.ts vendor-minimal",
+    "update": "tsx ./scripts/update.ts",
+    "update:global-cli": "tsx ./scripts/update.ts global-cli",
     "execution-plans:drain": "tsx ./scripts/drain-execution-plans.ts",
     "test": "vitest run --config ./vitest.config.ts"
   },

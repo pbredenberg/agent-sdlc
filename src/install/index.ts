@@ -17,4 +17,9 @@ export {
   printInstallUsage,
 } from "./parse-args.js";
 export type { InstallMode, InstallOptions, InstallResult } from "./types.js";
-export type { ParsedInstallArgs } from "./parse-args.js";
+export { installModeHelpLines, resolveInstallMode } from "./mode-aliases.js";
+export {
+  parseUpdateArgs,
+  printUpdateUsage,
+} from "./parse-update-args.js";
+export { runAgentSdlcUpdate } from "./update.js";

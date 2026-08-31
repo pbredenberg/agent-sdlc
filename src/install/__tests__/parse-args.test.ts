@@ -2,14 +2,25 @@ import { describe, expect, it } from "vitest";
 import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { resolveInstallMode } from "../mode-aliases.js";
 import {
   defaultSourceRoot,
   parseInstallArgs,
 } from "../parse-args.js";
 
+describe("resolveInstallMode", () => {
+  it("resolves vendor alias", () => {
+    expect(resolveInstallMode("vendor")).toBe("vendor-full");
+  });
+
+  it("resolves minimal alias", () => {
+    expect(resolveInstallMode("minimal")).toBe("vendor-minimal");
+  });
+});
+
 describe("parseInstallArgs", () => {
   it("parses dev mode with defaults", () => {
-    const result = parseInstallArgs(["node", "install.ts", "--mode", "dev"]);
+    const result = parseInstallArgs(["node", "install.ts", "dev"]);
     expect(result.mode).toBe("dev");
     expect(result.sourceRoot).toBe(defaultSourceRoot());
     expect(result.targetRoot).toBe(defaultSourceRoot());
@@ -17,14 +28,17 @@ describe("parseInstallArgs", () => {
     expect(result.help).toBe(false);
   });
 
-  it("parses vendor-full with target", async () => {
+  it("defaults to dev when mode is omitted", () => {
+    const result = parseInstallArgs(["node", "install.ts"]);
+    expect(result.mode).toBe("dev");
+  });
+
+  it("parses vendor-full with positional target", async () => {
     const target = await mkdtemp(join(tmpdir(), "app-"));
     const result = parseInstallArgs([
       "node",
       "install.ts",
-      "--mode",
-      "vendor-full",
-      "--target",
+      "vendor",
       target,
       "--dry-run",
     ]);
@@ -34,10 +48,20 @@ describe("parseInstallArgs", () => {
     expect(result.dryRun).toBe(true);
   });
 
+  it("still accepts --mode flag", () => {
+    const result = parseInstallArgs([
+      "node",
+      "install.ts",
+      "--mode",
+      "cloud",
+    ]);
+    expect(result.mode).toBe("cloud");
+  });
+
   it("requires target for vendor modes", () => {
     expect(() => {
-      parseInstallArgs(["node", "install.ts", "--mode", "vendor-full"]);
-    }).toThrow(/requires --target/);
+      parseInstallArgs(["node", "install.ts", "vendor-full"]);
+    }).toThrow(/requires a target path/);
   });
 
   it("returns help flag", () => {

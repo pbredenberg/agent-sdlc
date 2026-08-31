@@ -4,11 +4,17 @@ Agent runbook for the agent-sdlc Cursor plugin repository. Human docs live in [R
 
 ## Setup commands
 
-- Install deps: `npm install`
-- Install plugin for dev in this repo: `npm run install:plugin -- --mode dev` (or `bash scripts/install-plugin-dev.sh`)
-- Install for Cloud builds only: `npm run install:plugin -- --mode cloud`
-- Vendor into another app repo: `npm run install:plugin -- --mode vendor-full --target <app>`
-- Link drain CLI globally: `npm run install:plugin -- --mode global-cli` (exposes `agent-sdlc-drain`)
+- First-time setup: `npm run setup` (install deps + dev install)
+- Install plugin for dev in this repo: `npm run install:dev`
+- Install for Cloud builds only: `npm run install:cloud`
+- Vendor into another app repo: `npm run vendor -- <app>`
+- Link drain CLI globally: `npm run install:global-cli` (exposes `agent-sdlc-drain`)
+
+## Update commands
+
+- Update this checkout: `npm run update`
+- Refresh global drain CLI: `npm run update:global-cli`
+- Refresh vendored skills in an app repo: `npx github:pbredenberg/agent-sdlc update --commit`
 
 ## Dev commands
 
@@ -27,7 +33,7 @@ Agent runbook for the agent-sdlc Cursor plugin repository. Human docs live in [R
 - TypeScript with block function bodies over concise arrow bodies
 - Declarative, composable code; avoid nested `if` statements
 - Match existing skill and agent doc conventions when editing under `skills/` or `agents/`
-- After editing skills under `skills/`, re-run `npm run install:plugin -- --mode dev` so `.cursor/skills/` stays in sync
+- After editing skills under `skills/`, re-run `npm run install:dev` so `.cursor/skills/` stays in sync
 
 ## PR / commit conventions
 
