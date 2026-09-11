@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "9118ec0bb6ee8b94293ec1ab4b320b70764a5ea4",
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "agent-sdlc",
+      "changelog-path": "CHANGELOG.md",
+      "include-component-in-tag": false
+    }
+  }
+}
