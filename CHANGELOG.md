@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/pbredenberg/agent-sdlc/compare/v1.1.0...v1.2.0) (2026-09-11)
+
+
+### Features
+
+* extend agent-sdlc-update and vendor to cover Claude Code too ([25642b1](https://github.com/pbredenberg/agent-sdlc/commit/25642b120bd8d5a5e18201cf1fbbe3395b3f5aa1))
+* extend agent-sdlc-update and vendor to cover Claude Code too ([1e888d5](https://github.com/pbredenberg/agent-sdlc/commit/1e888d59d1c9c5cf5f797bc251b5df4037906f76))
+
 ## [1.1.0](https://github.com/pbredenberg/agent-sdlc/compare/v1.0.0...v1.1.0) (2026-09-11)
 
 
