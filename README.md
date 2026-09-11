@@ -85,14 +85,14 @@ Then in Cursor: **Developer: Reload Window**. Confirm `/sdlc` appears when you t
 
 ### 3. Copy skills into each app repo (Cloud / solo)
 
-**Preferred** when you are not on Team Marketplace. Copy skills into the application repo and commit them so every clone (including Cloud) has `/sdlc`.
+**Preferred** when you are not on Team Marketplace. Copy skills into the application repo and commit them so every clone (including Cloud) has `/sdlc`. This also copies a Claude Code plugin bundle to `.agent-sdlc-plugin/` in the same repo — see [Claude Code](#claude-code) below for how to use it and its real limits.
 
 From the **application repository** root:
 
 ```bash
 npx github:pbredenberg/agent-sdlc vendor .
-git add .cursor/skills .cursor/commands .cursor/rules
-git commit -m "chore: vendor agent-sdlc skills for Cursor"
+git add .cursor/skills .cursor/commands .cursor/rules .agent-sdlc-plugin
+git commit -m "chore: vendor agent-sdlc skills for Cursor and Claude Code"
 ```
 
 Or with a local agent-sdlc checkout:
@@ -140,18 +140,37 @@ Then `/sdlc` and the individual specialist skills are available the same way the
 
 **Known limitation:** `plugin-agents/*.md` (Cursor's agent personas) are not currently exposed as Claude Code subagents — the installed Claude Code CLI's plugin loader silently drops a `plugin.json` `agents` array even though it validates, so `.claude-plugin/plugin.json` intentionally declares `"agents": []`. This doesn't block `/sdlc`: the pipeline is driven by skills, not by delegating to formal subagents, in both plugins.
 
+### Claude Code in a vendored app repo
+
+Vendoring (path 3 above) copies a self-contained plugin bundle to `.agent-sdlc-plugin/` in the target repo. **This has a real limit, unlike Cursor's vendored `.cursor/skills`: Claude Code has no "commit it, works for the whole team" tier for a locally-copied bundle.** `claude plugin marketplace add <path>` writes the *absolute filesystem path* into settings — verified directly against the CLI — so a persistent registration only ever works on the machine that created it, even if `.agent-sdlc-plugin/` itself is committed and pushed.
+
+From the **application repository** root, two options:
+
+```bash
+# Ad hoc, every session — always works, no persistence, nothing written to disk:
+claude --plugin-dir .agent-sdlc-plugin
+
+# Persistent, but only on THIS machine (do this once per machine, not shareable via git):
+claude plugin marketplace add ./.agent-sdlc-plugin --scope local
+claude plugin install agent-sdlc@agent-sdlc-marketplace --scope local -y
+```
+
+If you want every teammate to get `/sdlc` automatically in an app repo the way Cursor's vendored `.cursor/skills` does, there's no local-copy equivalent for Claude Code — the only path that's actually team-shareable is hosting the plugin content in its own GitHub repo and following the "Shared, persistent" steps above (adapted to point at that repo) in each app repo.
+
 ## Updating
 
-Use **`agent-sdlc-update`** or `npm run update` — profile is auto-detected.
+Use **`agent-sdlc-update`** or `npm run update` — profile is auto-detected. **Cursor and Claude Code are refreshed independently by the same command**, and they don't need the same things — this table is the whole picture, not just Cursor's:
 
-| Install method | Update command |
-| --- | --- |
-| Desktop local plugin (this repo) | `npm run update` |
-| Global `agent-sdlc-drain` | `npm run update:global-cli` |
-| Copied `.cursor/skills` in an app | `npx github:pbredenberg/agent-sdlc update --commit` |
-| Team Marketplace | Merge upstream; refresh plugin in Dashboard |
+| Install method | Update command | What happens to Cursor | What happens to Claude Code |
+| --- | --- | --- | --- |
+| Desktop local plugin (this repo) | `npm run update` | Re-copies `.cursor/{skills,commands,rules}` here; reload Cursor after. | Nothing, **unless** this checkout has a committed `.claude/settings.json` with a GitHub-hosted marketplace ("Shared, persistent" above) — that's auto-detected and refreshed (`claude plugin marketplace update` + `claude plugin update ... --scope project -y`). A local/`--scope local` Claude Code install needs nothing: it reads `skills/`/`commands/` live, always current, verified directly (adding a new skill file showed up in `claude plugin details` instantly, no update step). |
+| Global `agent-sdlc-drain` | `npm run update:global-cli` | N/A — this is the drain CLI, unrelated to either plugin. | N/A |
+| Vendored into an app repo | `npx github:pbredenberg/agent-sdlc update --commit` | Re-copies `.cursor/{skills,commands,rules}` in the target repo and commits them. | Re-copies the `.agent-sdlc-plugin/` ad hoc bundle in the target repo (also committed) — see [Claude Code in a vendored app repo](#claude-code-in-a-vendored-app-repo) for how to use it. Same project-scope GitHub-marketplace auto-detection as above, scoped to the target repo. |
+| Team Marketplace | Merge upstream; refresh plugin in Dashboard | Manual Dashboard refresh, no CLI. | N/A — Cursor-only distribution path, no Claude Code equivalent. |
 
-Then **Developer: Reload Window** when Desktop commands look stale.
+Then **Developer: Reload Window** in Cursor when Desktop commands look stale; a Claude Code plugin update needs a restart to apply (per `claude plugin update`'s own output).
+
+**Why Claude Code so often needs nothing:** its local and vendored installs read `skills/`/`commands/` straight off disk every time, with no copy step — there's nothing to go stale. The one shape that *does* need an explicit refresh is a project-scope, GitHub-hosted marketplace registration, and `agent-sdlc-update` detects and handles that automatically; you never run a Claude-specific update command yourself.
 
 ### Desktop local plugin
 
@@ -175,7 +194,7 @@ cd /path/to/your-app
 npx github:pbredenberg/agent-sdlc update --commit
 ```
 
-Add `--commit` to stage and commit the refreshed `.cursor` files in one step.
+Add `--commit` to stage and commit the refreshed `.cursor` files **and** the `.agent-sdlc-plugin/` Claude Code bundle in one step.
 
 ## Usage
 
