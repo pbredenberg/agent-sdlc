@@ -51,11 +51,14 @@ export type CommitGateResult =
   | { ok: true; commitSha: string; commitMessage: string; autoCommitted?: boolean }
   | { ok: false; reason: string; details?: string };
 
+export type DrainBackend = "cursor" | "claude";
+
 export type DrainCliOptions = {
   /** Single phase to drain; null when allPhases is true. */
   phase: string | null;
   allPhases: boolean;
   cwd: string;
+  backend: DrainBackend;
   model: string;
   maxPlans: number | null;
   maxParallel: number;

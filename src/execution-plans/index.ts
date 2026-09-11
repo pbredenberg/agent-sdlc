@@ -71,6 +71,8 @@ export {
   writeDispatchState,
 } from "./dispatch-state.js";
 export {
+  DEFAULT_BACKEND,
+  DEFAULT_CLAUDE_MODEL,
   DEFAULT_MODEL,
   finalizeDrainArgs,
   parseDrainArgs,
@@ -97,6 +99,7 @@ export type {
   CommitGateResult,
   DispatchState,
   DispatchStatus,
+  DrainBackend,
   DrainCliOptions,
   PendingPlan,
   PlanFrontmatter,

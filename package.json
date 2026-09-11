@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Cursor plugin — multi-agent SDLC kit with execution plan drain CLI",
+  "description": "Multi-agent SDLC kit — Cursor and Claude Code plugin with execution plan drain CLI (Cursor or Claude backend)",
   "bin": {
     "agent-sdlc-drain": "./bin/agent-sdlc-drain.mjs",
     "agent-sdlc-install": "./bin/agent-sdlc-install.mjs",
@@ -24,6 +24,7 @@
     "test": "vitest run --config ./vitest.config.ts"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.268",
     "@cursor/sdk": "^1.0.23",
     "tsx": "^4.19.0"
   },

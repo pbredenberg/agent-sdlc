@@ -1,8 +1,14 @@
 import { resolve } from "node:path";
-import type { DrainCliOptions } from "./types.js";
+import type { DrainBackend, DrainCliOptions } from "./types.js";
 import { ROOT_PHASE } from "./paths.js";
 
 export const DEFAULT_MODEL = "composer-2.5";
+export const DEFAULT_CLAUDE_MODEL = "claude-sonnet-5";
+export const DEFAULT_BACKEND: DrainBackend = "cursor";
+
+function defaultModelForBackend(backend: DrainBackend): string {
+  return backend === "claude" ? DEFAULT_CLAUDE_MODEL : DEFAULT_MODEL;
+}
 
 export function printDrainUsage(): void {
   console.error(`Usage: agent-sdlc-drain --phase <name> [options]
@@ -10,7 +16,8 @@ export function printDrainUsage(): void {
        npm run execution-plans:drain -- --phase <name> [options]
 
 Drain numbered execution plans under docs/execution-plans/ with one
-fresh Cursor SDK Agent per plan. Supports parallel batches when dependencies allow.
+fresh agent per plan (Cursor Cloud Agent or Claude Agent SDK, see --backend).
+Supports parallel batches when dependencies allow.
 
 Required (one of):
   --phase <name>     Phase folder name (e.g. example-phase).
@@ -21,7 +28,9 @@ Required (one of):
 
 Options:
   --cwd <path>       Target repo root (default: process.cwd())
-  --model <id>       Model id (default: ${DEFAULT_MODEL})
+  --backend <name>   cursor | claude (default: cursor)
+  --model <id>       Model id (default: ${DEFAULT_MODEL} for cursor,
+                     ${DEFAULT_CLAUDE_MODEL} for claude)
   --max-plans <n>    Stop after N successful plans (across phases when --all-phases)
   --max-parallel <n> Max concurrent agents per batch (default: 1)
   --max-acceptance-retries <n>
@@ -37,11 +46,12 @@ commit/plan failures up to --max-acceptance-retries before exiting.
   --help             Show this help
 
 Environment:
-  CURSOR_API_KEY     Required unless --dry-run
+  CURSOR_API_KEY     Required for --backend cursor, unless --dry-run
+  ANTHROPIC_API_KEY  Required for --backend claude, unless --dry-run
 
 Exit codes:
   0  phase(s) drained (or --max-plans reached with all successes)
-  1  startup / CursorAgentError (auth, config, gate)
+  1  startup / agent SDK error (auth, config, gate)
   2  agent run failed
   3  acceptance gate failed
 `);
@@ -51,7 +61,8 @@ export function parseDrainArgs(argv: string[]): DrainCliOptions {
   let phase: string | null = null;
   let allPhases = false;
   let cwd = process.cwd();
-  let model = DEFAULT_MODEL;
+  let backend: DrainBackend = DEFAULT_BACKEND;
+  let model: string | null = null;
   let maxPlans: number | null = null;
   let maxParallel = 1;
   let maxAcceptanceRetries = 2;
@@ -88,6 +99,14 @@ export function parseDrainArgs(argv: string[]): DrainCliOptions {
       model = requireValue(arg, argv[++i]);
       continue;
     }
+    if (arg === "--backend") {
+      const raw = requireValue(arg, argv[++i]);
+      if (raw !== "cursor" && raw !== "claude") {
+        throw new Error(`--backend must be "cursor" or "claude", got: ${raw}`);
+      }
+      backend = raw;
+      continue;
+    }
     if (arg === "--max-plans") {
       const raw = requireValue(arg, argv[++i]);
       const parsed = Number.parseInt(raw, 10);
@@ -122,6 +141,7 @@ export function parseDrainArgs(argv: string[]): DrainCliOptions {
     phase,
     allPhases,
     cwd,
+    backend,
     model,
     maxPlans,
     maxParallel,
@@ -135,7 +155,9 @@ export function finalizeDrainArgs(input: {
   phase: string | null;
   allPhases: boolean;
   cwd: string;
-  model: string;
+  backend: DrainBackend;
+  /** Explicit --model value, or null to use the backend's default. */
+  model: string | null;
   maxPlans: number | null;
   maxParallel: number;
   maxAcceptanceRetries: number;
@@ -156,17 +178,20 @@ export function finalizeDrainArgs(input: {
     throw new Error(`Invalid --phase "${trimmedPhase}": use a single folder name or "."`);
   }
 
+  const apiKeyEnvVar = input.backend === "claude" ? "ANTHROPIC_API_KEY" : "CURSOR_API_KEY";
+
   return {
     phase: input.allPhases ? null : (trimmedPhase as string),
     allPhases: input.allPhases,
     cwd: input.cwd,
-    model: input.model,
+    backend: input.backend,
+    model: input.model ?? defaultModelForBackend(input.backend),
     maxPlans: input.maxPlans,
     maxParallel: input.maxParallel,
     maxAcceptanceRetries: input.maxAcceptanceRetries,
     dryRun: input.dryRun,
     skipAcceptance: input.skipAcceptance,
-    apiKey: process.env.CURSOR_API_KEY?.trim() || null,
+    apiKey: process.env[apiKeyEnvVar]?.trim() || null,
   };
 }
 

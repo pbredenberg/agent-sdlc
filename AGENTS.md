@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Agent runbook for the agent-sdlc Cursor plugin repository. Human docs live in [README.md](README.md).
+Agent runbook for the agent-sdlc repository — ships as both a Cursor plugin and a Claude Code plugin. Human docs live in [README.md](README.md).
 
 ## Setup commands
 
@@ -20,6 +20,7 @@ Agent runbook for the agent-sdlc Cursor plugin repository. Human docs live in [R
 
 - Drain execution plans (dry run): `agent-sdlc-drain --phase <name> --dry-run`
 - Drain execution plans: `agent-sdlc-drain --phase <name>` (requires `CURSOR_API_KEY`)
+- Drain on Claude instead of Cursor: `agent-sdlc-drain --phase <name> --backend claude` (requires `ANTHROPIC_API_KEY`)
 - Drain root (no phase folder): `agent-sdlc-drain --phase .`
 - Drain all phases: `agent-sdlc-drain --all-phases`
 - Drain without global link: `npm run execution-plans:drain -- --phase <name> [--cwd <app>]`
@@ -33,7 +34,7 @@ Agent runbook for the agent-sdlc Cursor plugin repository. Human docs live in [R
 - TypeScript with block function bodies over concise arrow bodies
 - Declarative, composable code; avoid nested `if` statements
 - Match existing skill and agent doc conventions when editing under `skills/` or `agents/`
-- After editing skills under `skills/`, re-run `npm run install:dev` so `.cursor/skills/` stays in sync
+- After editing skills under `skills/`, re-run `npm run install:dev` so `.cursor/skills/` stays in sync (Claude Code reads `skills/` directly — no copy step needed there)
 
 ## PR / commit conventions
 
@@ -44,7 +45,7 @@ Agent runbook for the agent-sdlc Cursor plugin repository. Human docs live in [R
 
 ## Security notes
 
-- Never commit `CURSOR_API_KEY` or other secrets
+- Never commit `CURSOR_API_KEY`, `ANTHROPIC_API_KEY`, or other secrets
 - `.agent-sdlc/` is gitignored — do not force-add dispatch state
 
 ## SDLC kit
