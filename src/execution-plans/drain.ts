@@ -190,7 +190,8 @@ async function drainOnePhase(
   }
 
   if (options.apiKey === null) {
-    log("CURSOR_API_KEY is required unless --dry-run");
+    const envVar = options.backend === "claude" ? "ANTHROPIC_API_KEY" : "CURSOR_API_KEY";
+    log(`${envVar} is required unless --dry-run`);
     return { code: EXIT_STARTUP, completed: 0 };
   }
 

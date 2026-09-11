@@ -69,6 +69,7 @@ describe("listPhases", () => {
 describe("finalizeDrainArgs", () => {
   const base = {
     cwd: "/repo",
+    backend: "cursor" as const,
     model: "composer-2.5",
     maxPlans: null,
     maxParallel: 1,

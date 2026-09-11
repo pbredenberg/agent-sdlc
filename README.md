@@ -1,6 +1,6 @@
 # agent-sdlc
 
-Cursor plugin that turns this multi-agent SDLC kit into an invokable slash command across your projects.
+Cursor and Claude Code plugin that turns this multi-agent SDLC kit into an invokable slash command across your projects.
 
 ## Slash commands
 
@@ -16,8 +16,11 @@ Cursor plugin that turns this multi-agent SDLC kit into an invokable slash comma
 
 ```text
 .cursor-plugin/
-  plugin.json          # plugin manifest
+  plugin.json          # Cursor plugin manifest
   marketplace.json     # team marketplace entry (this repo = one plugin)
+.claude-plugin/
+  plugin.json          # Claude Code plugin manifest (same skills/commands)
+  marketplace.json     # self-referential marketplace entry
 commands/
   sdlc.md              # /sdlc command
 skills/
@@ -26,6 +29,8 @@ skills/
 plugin-agents/         # Cursor agent personas (frontmatter + concise prompts)
 agents/                # Full role docs + role-organized skill copies
 ```
+
+`skills/` and `commands/` are shared source for **both** plugins — there is no separate copy step for Claude Code (unlike Cursor's `.cursor/` install), since Claude Code plugins read `commands/`, `skills/`, etc. directly from the plugin root.
 
 ## Install
 
@@ -143,6 +148,37 @@ That command:
 
 Re-run `npm run install:dev` after adding a skill under `skills/`. Cloud Agents also run `npm run install:cloud` via `.cursor/environment.json`.
 
+### Claude Code
+
+`.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` register the same `skills/` and `commands/` as a Claude Code plugin — no copy step needed; Claude Code reads them straight from the plugin root.
+
+Ad hoc, for one session:
+
+```bash
+cd agent-sdlc
+claude --plugin-dir .
+```
+
+Personal, persistent (this machine only — writes to gitignored `.claude/settings.local.json`):
+
+```bash
+claude plugin marketplace add ./ --scope local
+claude plugin install agent-sdlc@agent-sdlc-marketplace --scope local -y
+```
+
+Shared, persistent (so every clone of this repo gets `/sdlc` automatically — writes to committed `.claude/settings.json`). This only resolves once `.claude-plugin/` exists on the repo's default branch, so run it **after** this change is merged:
+
+```bash
+claude plugin marketplace add pbredenberg/agent-sdlc --scope project
+claude plugin install agent-sdlc@agent-sdlc-marketplace --scope project -y
+git add .claude/settings.json
+git commit -m "chore: enable agent-sdlc Claude Code plugin for this repo"
+```
+
+Then `/sdlc` and the individual specialist skills are available the same way they are in Cursor. `claude plugin validate .` checks the manifests; `claude plugin details agent-sdlc@agent-sdlc-marketplace` shows the loaded skill/command inventory.
+
+**Known limitation:** `plugin-agents/*.md` (Cursor's agent personas) are not currently exposed as Claude Code subagents — the installed Claude Code CLI's plugin loader silently drops a `plugin.json` `agents` array even though it validates, so `.claude-plugin/plugin.json` intentionally declares `"agents": []`. This doesn't block `/sdlc`: the pipeline is driven by skills, not by delegating to formal subagents, in both plugins.
+
 ## Updating
 
 Use **`agent-sdlc-update`** or `npm run update` — profile is auto-detected.
@@ -244,6 +280,8 @@ That puts `agent-sdlc-drain` on your `PATH`. Refresh after pulling CLI changes w
 
 #### Run from any app repo
 
+`--backend` picks which SDK spawns each plan's agent: `cursor` (default, needs `CURSOR_API_KEY`) or `claude` (needs `ANTHROPIC_API_KEY`).
+
 ```bash
 export CURSOR_API_KEY=cursor_...
 cd /path/to/your-app
@@ -263,9 +301,15 @@ agent-sdlc-drain --phase .
 # Every active phase (uses docs/execution-plans/phases.yaml when present; else alphabetical)
 agent-sdlc-drain --all-phases
 agent-sdlc-drain --all-phases --dry-run
+
+# Run on Claude instead of Cursor Cloud Agents
+export ANTHROPIC_API_KEY=sk-ant-...
+agent-sdlc-drain --phase my-phase --backend claude
 ```
 
 `--cwd` defaults to the current directory (the app). Override if needed: `agent-sdlc-drain --cwd /path/to/your-app --phase my-phase`.
+
+`--model` defaults to `composer-2.5` for `--backend cursor` and `claude-sonnet-5` for `--backend claude`; pass `--model <id>` to override either.
 
 #### Without a global link
 
@@ -284,6 +328,7 @@ State file (in the app repo): `.agent-sdlc/plan-dispatch-state.json` (gitignored
 
 ## Notes
 
-- `skills/` is the Cursor plugin discovery root (unique skill names). Role trees under `agents/*/skills/` keep the original organization; when the same skill existed on multiple roles, the plugin exports one canonical copy.
+- `skills/` is the plugin discovery root for **both** Cursor and Claude Code (unique skill names). Role trees under `agents/*/skills/` keep the original organization; when the same skill existed on multiple roles, the plugin exports one canonical copy.
 - Full contracts and schemas remain in `agents/**/AGENT.md`.
-- After editing a skill under `agents/`, mirror the change into `skills/<name>/` (or re-copy) so the slash command surface stays in sync.
+- After editing a skill under `agents/`, mirror the change into `skills/<name>/` (or re-copy) so the slash command surface stays in sync for both plugins.
+- `.claude-plugin/` and `.cursor-plugin/` both point at the same `commands/` and `skills/` — edit those once, not per tool.

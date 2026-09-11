@@ -1,0 +1,25 @@
+{
+  "name": "agent-sdlc",
+  "version": "1.0.0",
+  "description": "Multi-agent SDLC kit for Claude Code — invoke /sdlc to run the orchestrated pipeline, or call specialist skills directly.",
+  "author": {
+    "name": "Paul B",
+    "email": "slowlypoorly@gmail.com"
+  },
+  "repository": "https://github.com/pbredenberg/agent-sdlc",
+  "homepage": "https://github.com/pbredenberg/agent-sdlc",
+  "license": "MIT",
+  "keywords": [
+    "sdlc",
+    "agents",
+    "orchestrator",
+    "pr",
+    "qa",
+    "security",
+    "devops",
+    "architecture"
+  ],
+  "skills": "./skills",
+  "agents": [],
+  "commands": ["./commands"]
+}
