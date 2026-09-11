@@ -22,6 +22,14 @@ import {
   pathExists,
   removePath,
 } from "./copy-tree.js";
+import {
+  CLAUDE_PLUGIN_VENDOR_DIR_NAME,
+  claudePluginManifestSourceDir,
+  claudePluginVendorManifestDir,
+  claudePluginVendorSkillsDir,
+  copyClaudePluginBundle,
+  printClaudePluginVendorNote,
+} from "./claude-plugin.js";
 import type { InstallOptions, InstallResult, InstallStep } from "./types.js";
 
 export async function installAgentSdlc(
@@ -79,6 +87,7 @@ function buildDesktopSteps(options: InstallOptions): InstallStep[] {
 function buildVendorFullSteps(options: InstallOptions): InstallStep[] {
   return [
     ...buildProjectCopySteps(options),
+    buildCopyClaudePluginStep(options, false),
     buildVerifyStep(options, ["vendor-full"]),
   ];
 }
@@ -88,8 +97,31 @@ function buildVendorMinimalSteps(options: InstallOptions): InstallStep[] {
     buildCopySdlcSkillStep(options),
     ...buildCopySdlcCommandSteps(options),
     buildCopySdlcRuleStep(options),
+    buildCopyClaudePluginStep(options, true),
     buildVerifyStep(options, ["vendor-minimal"]),
   ];
+}
+
+function buildCopyClaudePluginStep(
+  options: InstallOptions,
+  minimal: boolean,
+): InstallStep {
+  return {
+    label: `copy Claude Code plugin bundle -> ${CLAUDE_PLUGIN_VENDOR_DIR_NAME}`,
+    run: async () => {
+      const copied = await copyClaudePluginBundle(
+        options.sourceRoot,
+        options.targetRoot,
+        options.dryRun,
+        { minimal },
+      );
+      if (copied) {
+        console.log(
+          `copied Claude Code plugin bundle -> ${CLAUDE_PLUGIN_VENDOR_DIR_NAME}/`,
+        );
+      }
+    },
+  };
 }
 
 function buildGlobalCliSteps(options: InstallOptions): InstallStep[] {
@@ -303,6 +335,15 @@ async function verifyInstallLayout(
     await assertPathExists(LOCAL_PLUGIN_DIR);
     await assertPathExists(`${LOCAL_PLUGIN_DIR}/.cursor-plugin/plugin.json`);
   }
+
+  const needsClaudeBundle = profiles.includes("vendor-full") || profiles.includes("vendor-minimal");
+  if (needsClaudeBundle) {
+    const claudeManifestSource = claudePluginManifestSourceDir(options.sourceRoot);
+    if (await pathExists(claudeManifestSource)) {
+      await assertPathExists(join(claudePluginVendorManifestDir(options.targetRoot), "plugin.json"));
+      await assertPathExists(claudePluginVendorSkillsDir(options.targetRoot));
+    }
+  }
 }
 
 async function assertPathExists(path: string): Promise<void> {
@@ -353,14 +394,18 @@ export function printInstallSummary(result: InstallResult): void {
   console.log(`agent-sdlc install complete (${result.mode}).`);
 
   const messages: Record<InstallResult["mode"], string> = {
-    dev: "Reload Cursor (Developer: Reload Window) so Desktop picks up the local plugin.",
-    cloud: "Cloud Agents use committed .cursor/skills copies — re-run after skill edits.",
+    dev: "Reload Cursor (Developer: Reload Window) so Desktop picks up the local plugin (Cursor only — Claude Code reads skills/commands live from this checkout, nothing to re-copy for it).",
+    cloud: "Cloud Agents use committed .cursor/skills copies — re-run after skill edits (Cursor only; unrelated to Claude Code).",
     desktop: "Reload Cursor (Developer: Reload Window) so Desktop picks up the local plugin.",
-    "vendor-full": "Commit .cursor/skills and .cursor/commands in the target repository.",
-    "vendor-minimal": "Commit .cursor/skills/sdlc and .cursor/commands/sdlc.md in the target repository.",
+    "vendor-full": "Commit .cursor/skills and .cursor/commands (Cursor) in the target repository.",
+    "vendor-minimal": "Commit .cursor/skills/sdlc and .cursor/commands/sdlc.md (Cursor) in the target repository.",
     "global-cli": "agent-sdlc-drain is now on your PATH (re-run after CLI changes).",
   };
 
   console.log(messages[result.mode]);
   console.log("Slash commands: /sdlc and specialist skills under Customize -> Skills.");
+
+  if (result.mode === "vendor-full" || result.mode === "vendor-minimal") {
+    printClaudePluginVendorNote();
+  }
 }

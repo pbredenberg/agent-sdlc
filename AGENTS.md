@@ -12,9 +12,9 @@ Agent runbook for the agent-sdlc repository — ships as both a Cursor plugin an
 
 ## Update commands
 
-- Update this checkout: `npm run update`
+- Update this checkout: `npm run update` — refreshes `.cursor/*` (Cursor); also auto-detects and refreshes a project-scope, GitHub-hosted Claude Code marketplace registration if `.claude/settings.json` has one. A local Claude Code install needs no refresh — it reads `skills/`/`commands/` live (verified: adding a skill file shows up in `claude plugin details` instantly, no update step).
 - Refresh global drain CLI: `npm run update:global-cli`
-- Refresh vendored skills in an app repo: `npx github:pbredenberg/agent-sdlc update --commit`
+- Refresh vendored skills in an app repo: `npx github:pbredenberg/agent-sdlc update --commit` — refreshes both `.cursor/*` and the `.agent-sdlc-plugin/` Claude Code ad hoc bundle, committing both. See README's [Updating](README.md#updating) for the full Cursor vs. Claude Code breakdown, and [Claude Code in a vendored app repo](README.md#claude-code-in-a-vendored-app-repo) for why that bundle has no team-shareable persistent option.
 
 ## Dev commands
 
@@ -56,7 +56,7 @@ Agent runbook for the agent-sdlc repository — ships as both a Cursor plugin an
 ## Security notes
 
 - Never commit `CURSOR_API_KEY`, `ANTHROPIC_API_KEY`, or other secrets
-- `.agent-sdlc/` is gitignored — do not force-add dispatch state
+- `.agent-sdlc/` is gitignored — do not force-add dispatch state. `.agent-sdlc-plugin/` (a vendor-time output in a *target* app repo, not this repo) is a different, unrelated, committed directory — do not conflate the two.
 
 ## SDLC kit
 
