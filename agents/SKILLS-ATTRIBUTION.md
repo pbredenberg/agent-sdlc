@@ -13,7 +13,7 @@ Skills are retained only if they are **model-agnostic** (work with any LLM) and 
 
 ## Retained skills (14 entries across 7 agents)
 
-Stored under `docs/agents/<agent>/skills/<skill-name>/`. The same skill may appear under multiple agents when reused.
+Stored under the single canonical `skills/<skill-name>/` (the plugin discovery root for both Cursor and Claude Code — see `AGENTS.md`). Each was originally vetted for the agent role(s) below; the same skill may be relevant to multiple roles.
 
 | Agent | Skill | Source |
 | --- | --- | --- |

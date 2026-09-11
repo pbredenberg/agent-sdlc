@@ -25,9 +25,9 @@ commands/
   sdlc.md              # /sdlc command
 skills/
   sdlc/SKILL.md        # preferred slash surface for /sdlc
-  <skill>/             # plugin-discoverable specialists (exported from agents/)
+  <skill>/             # plugin-discoverable specialists (single canonical copy)
 plugin-agents/         # Cursor agent personas (frontmatter + concise prompts)
-agents/                # Full role docs + role-organized skill copies
+agents/                # Full role docs (AGENT.md) + vendoring/licensing provenance
 ```
 
 `skills/` and `commands/` are shared source for **both** plugins — there is no separate copy step for Claude Code (unlike Cursor's `.cursor/` install), since Claude Code plugins read `commands/`, `skills/`, etc. directly from the plugin root.
@@ -334,7 +334,6 @@ State file (in the app repo): `.agent-sdlc/plan-dispatch-state.json` (gitignored
 
 ## Notes
 
-- `skills/` is the plugin discovery root for **both** Cursor and Claude Code (unique skill names). Role trees under `agents/*/skills/` keep the original organization; when the same skill existed on multiple roles, the plugin exports one canonical copy.
-- Full contracts and schemas remain in `agents/**/AGENT.md`.
-- After editing a skill under `agents/`, mirror the change into `skills/<name>/` (or re-copy) so the slash command surface stays in sync for both plugins.
+- `skills/` is the single canonical source for every skill body (unique skill names), and the plugin discovery root for **both** Cursor and Claude Code. There is no per-role copy anywhere else — edit a skill only under `skills/<name>/`.
+- `agents/**/AGENT.md` holds the full role contracts/schemas and, per role, which `skills/` entries it draws on (see `agents/SKILLS-ATTRIBUTION.md` for vendoring/licensing provenance). These are narrative/reference docs, not a second copy of skill bodies.
 - `.claude-plugin/` and `.cursor-plugin/` both point at the same `commands/` and `skills/` — edit those once, not per tool.
