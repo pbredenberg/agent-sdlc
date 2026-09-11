@@ -44,7 +44,21 @@ function diffDirs(expected: string, actual: string): string[] {
   if (result.status === 0) {
     return [];
   }
-  return result.stdout.trim().split("\n").filter(Boolean);
+
+  // diff exits non-zero both for real content differences (reported on
+  // stdout) and for a missing path entirely (reported on stderr, e.g. one
+  // side of the comparison was deleted) — surface both, or a generic
+  // fallback, so a non-zero exit can never be silently swallowed as "in sync".
+  const lines = [
+    ...result.stdout.trim().split("\n").filter(Boolean),
+    ...result.stderr.trim().split("\n").filter(Boolean),
+  ];
+  if (lines.length > 0) {
+    return lines;
+  }
+  return [
+    `diff exited with status ${result.status ?? "unknown"} comparing ${expected} vs ${actual}`,
+  ];
 }
 
 const SHARED_PLUGIN_FIELDS = [
