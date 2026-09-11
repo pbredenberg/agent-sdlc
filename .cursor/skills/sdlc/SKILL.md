@@ -27,6 +27,12 @@ Execute stages in order. Skip a stage only when the orchestrator policy says it 
 9. **Security + DevOps** — review risk and operational readiness. Use `security-change-review`, `devops-operations-readiness`, and other DevOps skills only when relevant.
 10. **PR** — open or update a review-ready PR. Use `pr-packager`, `pr-review-expert`, `release-manager` as needed. **Never merge** without explicit human approval.
 
+### Execution mode by platform
+
+**Claude Code:** dispatch each numbered stage above to a fresh Task-tool subagent instead of running it in this conversation's own context. Pass the subagent only: (a) the single stage's skill name to invoke, (b) the accumulated handoff note from prior stages (not prior transcripts), (c) repo-discovery basics (AGENTS.md path, test/lint/build commands). Require the subagent to return a short structured handoff — decisions made, files touched, open questions — and nothing else re-enters this conversation's context. This mirrors the "one fresh agent per plan" pattern in `execution-plan-dispatcher`, applied per pipeline stage instead of per plan.
+
+**Cursor:** run stages sequentially in this same chat, as today. Cursor has no equivalent mechanism for opening a fresh agent mid-conversation (see `execution-plan-dispatcher`'s note that "Cursor cannot open a second chat for you") — forcing a manual copy/paste handoff per stage would be a large regression for a routine 10-stage pipeline, so stick with in-context execution here.
+
 ## Execution plan branches
 
 When the operator's intent is execution-plan work, **do not** run the full pipeline. Route instead:

@@ -36,3 +36,6 @@ jobs:
 
       - name: Test
         run: npm test
+
+      - name: Verify .cursor/ and plugin.json are in sync
+        run: npm run verify:sync

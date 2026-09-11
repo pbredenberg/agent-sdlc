@@ -1,16 +1,16 @@
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { defaultSourceRoot, requireValue, splitArgv } from "../shared/argv-utils.js";
 import { installModeHelpLines, resolveInstallMode } from "./mode-aliases.js";
 import type { InstallMode, InstallOptions } from "./types.js";
+
+export { defaultSourceRoot } from "../shared/argv-utils.js";
 
 export type ParsedInstallArgs = InstallOptions & {
   sourceUrl: string | null;
   help: boolean;
 };
 
-export function defaultSourceRoot(): string {
-  return resolve(fileURLToPath(new URL("../..", import.meta.url)));
-}
+const VALUE_FLAGS = ["--mode", "--source", "--target", "--source-url"];
 
 export function printInstallUsage(): void {
   const modeLines = installModeHelpLines();
@@ -42,13 +42,8 @@ Examples:
 `);
 }
 
-type SplitArgv = {
-  flagTokens: string[];
-  positionals: string[];
-};
-
 export function parseInstallArgs(argv: string[]): ParsedInstallArgs {
-  const split = splitArgv(argv);
+  const split = splitArgv(argv, VALUE_FLAGS);
   let mode: InstallMode | null = null;
   let sourceRoot = defaultSourceRoot();
   let targetRoot = sourceRoot;
@@ -124,44 +119,6 @@ export function parseInstallArgs(argv: string[]): ParsedInstallArgs {
   };
 }
 
-function splitArgv(argv: string[]): SplitArgv {
-  const flagTokens: string[] = [];
-  const positionals: string[] = [];
-  const valueFlags = new Set([
-    "--mode",
-    "--source",
-    "--target",
-    "--source-url",
-  ]);
-
-  for (let i = 2; i < argv.length; i++) {
-    const arg = argv[i];
-    const isFlag = arg.startsWith("-");
-
-    if (!isFlag) {
-      positionals.push(arg);
-      continue;
-    }
-
-    flagTokens.push(arg);
-
-    if (!valueFlags.has(arg)) {
-      continue;
-    }
-
-    const next = argv[i + 1];
-    const hasValue = Boolean(next) && !next.startsWith("-");
-    if (!hasValue) {
-      continue;
-    }
-
-    flagTokens.push(next);
-    i++;
-  }
-
-  return { flagTokens, positionals };
-}
-
 function validateModeTargets(
   mode: InstallMode,
   sourceRoot: string,
@@ -174,12 +131,4 @@ function validateModeTargets(
   if (needsDistinctTarget && sameTarget) {
     throw new Error(`${mode} requires a target path (second argument or --target)`);
   }
-}
-
-function requireValue(flag: string, value: string | undefined): string {
-  if (value) {
-    return value;
-  }
-
-  throw new Error(`${flag} requires a value`);
 }
