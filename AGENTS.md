@@ -28,6 +28,9 @@ Agent runbook for the agent-sdlc repository — ships as both a Cursor plugin an
 ## Testing instructions
 
 - Run tests: `npm test`
+- Lint: `npm run lint` (ESLint, flat config in `eslint.config.js`)
+- Typecheck / build check: `npm run typecheck` (`tsc --noEmit`)
+- CI runs lint + typecheck + test on every PR (open/sync/reopen against `main`) and on push to `main`: `.github/workflows/ci.yml`
 
 ## Code style
 
@@ -38,10 +41,17 @@ Agent runbook for the agent-sdlc repository — ships as both a Cursor plugin an
 
 ## PR / commit conventions
 
-- Conventional Commits: `feat:`, `fix:`, `chore:`, `docs:`
+- Conventional Commits: `feat:`, `fix:`, `chore:`, `docs:` — both the PR title and every individual commit (this repo merges with a merge commit, not squash, so real commit messages drive the changelog)
 - Execution plan commits: `exec-plan(<phase>): <title>`
-- Run `npm test` before opening a PR
+- Run `npm test`, `npm run lint`, and `npm run typecheck` before opening a PR
 - Do not commit unless explicitly asked
+
+## Releases
+
+- [release-please](https://github.com/googleapis/release-please) watches `main` (`.github/workflows/release-please.yml`) and maintains a standing "Release PR" that accumulates the next version bump and `CHANGELOG.md` entry from Conventional Commit commits merged since the last release
+- Merge commit subjects (`Merge pull request #N from …`) don't match the Conventional Commits format, so release-please ignores them automatically — only the real `feat:`/`fix:`/etc. commits count
+- Merging the Release PR cuts the actual release: it bumps `package.json`'s `version`, updates `CHANGELOG.md`, tags the commit, and publishes a GitHub Release — no manual version bumping
+- Config: `release-please-config.json` / `.release-please-manifest.json`. This package is `private`, so nothing is published to npm
 
 ## Security notes
 

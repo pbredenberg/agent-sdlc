@@ -238,6 +238,12 @@ Stage-only examples:
 /business-analyst-requirements-pack
 ```
 
+## CI & Releases
+
+`.github/workflows/ci.yml` runs on every PR (open, update, reopen) targeting `main` and on every push to `main`: `npm run lint` (ESLint), `npm run typecheck` (`tsc --noEmit`), and `npm test`.
+
+`.github/workflows/release-please.yml` runs [release-please](https://github.com/googleapis/release-please) on push to `main`. It keeps a standing "Release PR" whose diff is the next version bump + `CHANGELOG.md` entry, built from Conventional Commit commits merged since the last release (PR titles *and* individual commits should use `feat:`/`fix:`/`chore:`/etc. — this repo merges with real merge commits, so the changelog is generated from the actual commits, not the PR title; `Merge pull request #N from …` subjects are ignored automatically since they aren't Conventional Commits). Merging that Release PR bumps `package.json`, updates the changelog, tags the commit, and publishes a GitHub Release. Nothing is published to npm (`private: true`).
+
 ## Execution plans
 
 Draft numbered plans (no implementation) and drain them with one fresh agent per plan.

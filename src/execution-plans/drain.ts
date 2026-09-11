@@ -477,8 +477,14 @@ async function runBatch(
       phase: options.phase,
       planRelativePaths: plans.map((p) => p.relativePath),
       status: "advanced",
-      agentIds: agentResults.map((r) => r.agentId).filter(Boolean) as string[],
-      runIds: agentResults.map((r) => r.runId).filter(Boolean) as string[],
+      agentIds: agentResults
+        .filter((r): r is Extract<AgentRunResult, { ok: true }> => r.ok)
+        .map((r) => r.agentId)
+        .filter(Boolean) as string[],
+      runIds: agentResults
+        .filter((r): r is Extract<AgentRunResult, { ok: true }> => r.ok)
+        .map((r) => r.runId)
+        .filter(Boolean) as string[],
       message: `advanced past ${plans.map((p) => p.relativePath).join(", ")}`,
     }),
   );
