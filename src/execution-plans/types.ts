@@ -66,4 +66,5 @@ export type DrainCliOptions = {
   dryRun: boolean;
   skipAcceptance: boolean;
   apiKey: string | null;
+  help: boolean;
 };

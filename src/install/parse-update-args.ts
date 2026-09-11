@@ -1,9 +1,19 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { defaultSourceRoot, requireValue, splitArgv } from "../shared/argv-utils.js";
 import { installModeHelpLines } from "./mode-aliases.js";
 import { pluginManifestPath, sdlcSkillDest } from "./paths.js";
 import { DEFAULT_SOURCE_URL } from "./paths.js";
+
+const VALUE_FLAGS = [
+  "--profile",
+  "--cwd",
+  "--source",
+  "--target",
+  "--source-url",
+  "--message",
+  "-m",
+];
 
 export type UpdateProfile = "dev" | "vendor" | "global-cli";
 
@@ -19,10 +29,6 @@ export type ParsedUpdateArgs = {
   dryRun: boolean;
   help: boolean;
 };
-
-export function defaultSourceRoot(): string {
-  return resolve(fileURLToPath(new URL("../..", import.meta.url)));
-}
 
 export function printUpdateUsage(): void {
   const modeLines = installModeHelpLines();
@@ -62,7 +68,7 @@ Examples:
 }
 
 export function parseUpdateArgs(argv: string[]): ParsedUpdateArgs {
-  const split = splitArgv(argv);
+  const split = splitArgv(argv, VALUE_FLAGS);
   let profile: UpdateProfile | null = null;
   let cwd = process.cwd();
   let sourceRoot = defaultSourceRoot();
@@ -199,58 +205,4 @@ function parseProfile(value: string): UpdateProfile {
   }
 
   throw new Error(`invalid profile ${value}`);
-}
-
-type SplitArgv = {
-  flagTokens: string[];
-  positionals: string[];
-};
-
-function splitArgv(argv: string[]): SplitArgv {
-  const flagTokens: string[] = [];
-  const positionals: string[] = [];
-  const valueFlags = new Set([
-    "--profile",
-    "--cwd",
-    "--source",
-    "--target",
-    "--source-url",
-    "--message",
-    "-m",
-  ]);
-
-  for (let i = 2; i < argv.length; i++) {
-    const arg = argv[i];
-    const isFlag = arg.startsWith("-");
-
-    if (!isFlag) {
-      positionals.push(arg);
-      continue;
-    }
-
-    flagTokens.push(arg);
-
-    if (!valueFlags.has(arg)) {
-      continue;
-    }
-
-    const next = argv[i + 1];
-    const hasValue = Boolean(next) && !next.startsWith("-");
-    if (!hasValue) {
-      continue;
-    }
-
-    flagTokens.push(next);
-    i++;
-  }
-
-  return { flagTokens, positionals };
-}
-
-function requireValue(flag: string, value: string | undefined): string {
-  if (value) {
-    return value;
-  }
-
-  throw new Error(`${flag} requires a value`);
 }

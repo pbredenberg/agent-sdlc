@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import type { DrainBackend, DrainCliOptions } from "./types.js";
 import { ROOT_PHASE } from "./paths.js";
+import { requireValue } from "../shared/argv-utils.js";
 
 export const DEFAULT_MODEL = "composer-2.5";
 export const DEFAULT_CLAUDE_MODEL = "claude-sonnet-5";
@@ -72,8 +73,20 @@ export function parseDrainArgs(argv: string[]): DrainCliOptions {
   for (let i = 2; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--help" || arg === "-h") {
-      printDrainUsage();
-      process.exit(0);
+      return {
+        phase: null,
+        allPhases: false,
+        cwd,
+        backend: DEFAULT_BACKEND,
+        model: defaultModelForBackend(DEFAULT_BACKEND),
+        maxPlans: null,
+        maxParallel: 1,
+        maxAcceptanceRetries: 2,
+        dryRun: false,
+        skipAcceptance: false,
+        apiKey: null,
+        help: true,
+      };
     }
     if (arg === "--dry-run") {
       dryRun = true;
@@ -192,12 +205,6 @@ export function finalizeDrainArgs(input: {
     dryRun: input.dryRun,
     skipAcceptance: input.skipAcceptance,
     apiKey: process.env[apiKeyEnvVar]?.trim() || null,
+    help: false,
   };
-}
-
-function requireValue(flag: string, value: string | undefined): string {
-  if (value === undefined || value.startsWith("--")) {
-    throw new Error(`${flag} requires a value`);
-  }
-  return value;
 }
