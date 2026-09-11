@@ -78,6 +78,28 @@ async function diffSharedPluginFields(): Promise<string[]> {
   return mismatches;
 }
 
+// marketplace.json is expected to be byte-identical between the two plugin
+// dirs. Each platform's marketplace loader needs a real file at its own
+// path (symlink tolerance is unverified), so this stays a drift check
+// rather than a single shared file.
+async function diffMarketplaceFiles(): Promise<string[]> {
+  const claude = await readFile(
+    join(repoRoot, ".claude-plugin/marketplace.json"),
+    "utf8",
+  );
+  const cursor = await readFile(
+    join(repoRoot, ".cursor-plugin/marketplace.json"),
+    "utf8",
+  );
+
+  if (claude !== cursor) {
+    return [
+      "marketplace.json differs between .claude-plugin/ and .cursor-plugin/ (expected byte-identical)",
+    ];
+  }
+  return [];
+}
+
 async function main() {
   const scratchRoot = await mkdtemp(join(tmpdir(), "agent-sdlc-verify-sync-"));
 
@@ -89,23 +111,26 @@ async function main() {
       ...diffDirs(commandsDestDir(scratchRoot), commandsDestDir(repoRoot)),
       ...diffDirs(rulesDestDir(scratchRoot), rulesDestDir(repoRoot)),
       ...(await diffSharedPluginFields()),
+      ...(await diffMarketplaceFiles()),
     ];
 
     if (mismatches.length > 0) {
       console.error(
-        "verify-sync: committed .cursor/{skills,commands,rules} or plugin.json shared fields have drifted from their source.\n",
+        "verify-sync: committed generated/mirrored files have drifted from their source.\n",
       );
       for (const line of mismatches) {
         console.error(`  ${line}`);
       }
       console.error(
-        "\nRun `npm run install:dev` and commit the result, or edit the divergent plugin.json field in both files.",
+        "\nFor .cursor/{skills,commands,rules} drift: run `npm run install:dev` and commit the result.\nFor plugin.json/marketplace.json drift: reconcile the divergent field/file by hand in both plugin dirs.",
       );
       process.exitCode = 1;
       return;
     }
 
-    console.log("verify-sync: .cursor/{skills,commands,rules} and plugin.json shared fields are in sync.");
+    console.log(
+      "verify-sync: .cursor/{skills,commands,rules}, plugin.json shared fields, and marketplace.json are in sync.",
+    );
   } finally {
     await rm(scratchRoot, { recursive: true, force: true });
   }
