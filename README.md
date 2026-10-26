@@ -311,3 +311,14 @@ State file (in the app repo): `.agent-sdlc/plan-dispatch-state.json` (gitignored
 - `skills/` is the single canonical source for every skill body (unique skill names), and the plugin discovery root for **both** Cursor and Claude Code. There is no per-role copy anywhere else — edit a skill only under `skills/<name>/`.
 - `agents/**/AGENT.md` holds the full role contracts/schemas and, per role, which `skills/` entries it draws on (see `agents/SKILLS-ATTRIBUTION.md` for vendoring/licensing provenance). These are narrative/reference docs, not a second copy of skill bodies.
 - `.claude-plugin/` and `.cursor-plugin/` both point at the same `commands/` and `skills/` — edit those once, not per tool.
+
+## Credits
+
+This kit vendors third-party agent skills from the following open-source repositories, redistributed verbatim under their original MIT licenses:
+
+| Source | License |
+| --- | --- |
+| [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) | MIT (Copyright (c) 2025 Alireza Rezvani) |
+| [wshobson/agents](https://github.com/wshobson/agents) | MIT (Copyright (c) 2024 Seth Hobson) |
+
+See [agents/SKILLS-ATTRIBUTION.md](agents/SKILLS-ATTRIBUTION.md) for the per-skill provenance, what was retained or removed, and caveats.
