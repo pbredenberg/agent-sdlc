@@ -1,0 +1,4 @@
+{
+  "name": "agent-sdlc",
+  "install": "npm install && npm run install:cloud"
+}

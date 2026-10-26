@@ -1,0 +1,10 @@
+{
+  "extraKnownMarketplaces": {
+    "agent-sdlc-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "pbredenberg/agent-sdlc"
+      }
+    }
+  }
+}
