@@ -1,6 +1,6 @@
 {
   "name": "agent-sdlc",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "type": "module",
   "description": "Multi-agent SDLC kit — Cursor and Claude Code plugin with execution plan drain CLI (Cursor or Claude backend)",
