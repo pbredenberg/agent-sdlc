@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/pbredenberg/agent-sdlc/compare/v1.2.0...v1.2.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* expose plugin-agents as Claude Code subagents ([f0736ec](https://github.com/pbredenberg/agent-sdlc/commit/f0736ec605c50e1444c98c4f09d9d791b71731d2))
+
 ## [1.2.0](https://github.com/pbredenberg/agent-sdlc/compare/v1.1.0...v1.2.0) (2026-09-11)
 
 
