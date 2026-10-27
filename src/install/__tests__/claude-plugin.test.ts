@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { mkdtemp, mkdir, writeFile, readFile } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   copyClaudePluginBundle,
   readClaudePluginManifest,
@@ -13,7 +14,12 @@ async function createSourceTree(root: string): Promise<void> {
   await mkdir(join(root, ".claude-plugin"), { recursive: true });
   await writeFile(
     join(root, ".claude-plugin", "plugin.json"),
-    JSON.stringify({ name: "agent-sdlc", skills: "./skills", commands: ["./commands"] }),
+    JSON.stringify({
+      name: "agent-sdlc",
+      skills: "./skills",
+      agents: ["./plugin-agents/orchestrator.md"],
+      commands: ["./commands"],
+    }),
     "utf8",
   );
   await writeFile(
@@ -26,7 +32,47 @@ async function createSourceTree(root: string): Promise<void> {
   await writeFile(join(root, "skills", "sdlc", "SKILL.md"), "---\nname: sdlc\n---\n", "utf8");
   await mkdir(join(root, "commands"), { recursive: true });
   await writeFile(join(root, "commands", "sdlc.md"), "# sdlc\n", "utf8");
+  await mkdir(join(root, "plugin-agents"), { recursive: true });
+  await writeFile(
+    join(root, "plugin-agents", "orchestrator.md"),
+    "---\nname: orchestrator\ndescription: test\n---\n",
+    "utf8",
+  );
 }
+
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+
+describe(".claude-plugin/plugin.json agents", () => {
+  it("lists every plugin-agents/*.md file explicitly", async () => {
+    const plugin = JSON.parse(
+      await readFile(join(repoRoot, ".claude-plugin", "plugin.json"), "utf8"),
+    );
+    const files = (await readdir(join(repoRoot, "plugin-agents")))
+      .filter((name) => {
+        return name.endsWith(".md");
+      })
+      .sort();
+
+    expect(plugin.agents).toEqual(
+      files.map((name) => {
+        return `./plugin-agents/${name}`;
+      }),
+    );
+  });
+
+  it("gives every listed agent name and description frontmatter", async () => {
+    const plugin = JSON.parse(
+      await readFile(join(repoRoot, ".claude-plugin", "plugin.json"), "utf8"),
+    );
+
+    for (const agentPath of plugin.agents as string[]) {
+      const content = await readFile(join(repoRoot, agentPath), "utf8");
+      const frontmatter = content.match(/^---\n([\s\S]*?)\n---/)?.[1] ?? "";
+      expect(frontmatter, agentPath).toMatch(/^name: \S+/m);
+      expect(frontmatter, agentPath).toMatch(/^description: \S+/m);
+    }
+  });
+});
 
 describe("readClaudePluginManifest", () => {
   it("reads the plugin and marketplace names", async () => {
@@ -72,6 +118,26 @@ describe("copyClaudePluginBundle", () => {
       "utf8",
     );
     expect(skill).toContain("name: sdlc");
+
+    const agent = await readFile(
+      join(targetRoot, ".agent-sdlc-plugin", "plugin-agents", "orchestrator.md"),
+      "utf8",
+    );
+    expect(agent).toContain("name: orchestrator");
+  });
+
+  it("copies plugin-agents in minimal mode so the manifest's agents paths resolve", async () => {
+    const sourceRoot = await mkdtemp(join(tmpdir(), "source-"));
+    const targetRoot = await mkdtemp(join(tmpdir(), "target-"));
+    await createSourceTree(sourceRoot);
+
+    await copyClaudePluginBundle(sourceRoot, targetRoot, false, { minimal: true });
+
+    const agent = await readFile(
+      join(targetRoot, ".agent-sdlc-plugin", "plugin-agents", "orchestrator.md"),
+      "utf8",
+    );
+    expect(agent).toContain("name: orchestrator");
   });
 });
 

@@ -7,6 +7,7 @@ export const DEFAULT_SOURCE_URL =
 export const SKILLS_DIR_NAME = "skills";
 export const COMMANDS_DIR_NAME = "commands";
 export const RULES_DIR_NAME = "rules";
+export const PLUGIN_AGENTS_DIR_NAME = "plugin-agents";
 export const CURSOR_DIR_NAME = ".cursor";
 export const PLUGIN_MANIFEST = ".cursor-plugin/plugin.json";
 export const SDL_SKILL_NAME = "sdlc";
@@ -24,6 +25,10 @@ export function skillsSourceDir(sourceRoot: string): string {
 
 export function commandsSourceDir(sourceRoot: string): string {
   return join(sourceRoot, COMMANDS_DIR_NAME);
+}
+
+export function pluginAgentsSourceDir(sourceRoot: string): string {
+  return join(sourceRoot, PLUGIN_AGENTS_DIR_NAME);
 }
 
 export function skillsDestDir(targetRoot: string): string {

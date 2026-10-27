@@ -1,6 +1,6 @@
 {
   "name": "agent-sdlc",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Multi-agent SDLC kit for Claude Code — invoke /sdlc to run the orchestrated pipeline, or call specialist skills directly.",
   "author": {
     "name": "Paul B",
@@ -20,6 +20,17 @@
     "architecture"
   ],
   "skills": "./skills",
-  "agents": [],
+  "agents": [
+    "./plugin-agents/business-analyst.md",
+    "./plugin-agents/codebase-context.md",
+    "./plugin-agents/devops-specialist.md",
+    "./plugin-agents/orchestrator.md",
+    "./plugin-agents/pr-agent.md",
+    "./plugin-agents/qa-engineer.md",
+    "./plugin-agents/security-specialist.md",
+    "./plugin-agents/senior-engineer.md",
+    "./plugin-agents/software-architect.md",
+    "./plugin-agents/validation.md"
+  ],
   "commands": ["./commands"]
 }
