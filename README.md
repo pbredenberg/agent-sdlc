@@ -26,7 +26,7 @@ commands/
 skills/
   sdlc/SKILL.md        # preferred slash surface for /sdlc
   <skill>/             # plugin-discoverable specialists (single canonical copy)
-plugin-agents/         # Cursor agent personas (frontmatter + concise prompts)
+plugin-agents/         # Agent personas for both plugins (frontmatter + concise prompts)
 agents/                # Full role docs (AGENT.md) + vendoring/licensing provenance
 ```
 
@@ -138,7 +138,7 @@ git commit -m "chore: enable agent-sdlc Claude Code plugin for this repo"
 
 Then `/sdlc` and the individual specialist skills are available the same way they are in Cursor. `claude plugin validate .` checks the manifests; `claude plugin details agent-sdlc@agent-sdlc-marketplace` shows the loaded skill/command inventory.
 
-**Known limitation:** `plugin-agents/*.md` (Cursor's agent personas) are not currently exposed as Claude Code subagents — the installed Claude Code CLI's plugin loader silently drops a `plugin.json` `agents` array even though it validates, so `.claude-plugin/plugin.json` intentionally declares `"agents": []`. This doesn't block `/sdlc`: the pipeline is driven by skills, not by delegating to formal subagents, in both plugins.
+**Subagents:** `.claude-plugin/plugin.json` lists every `plugin-agents/*.md` file in its `agents` array, so they load as `agent-sdlc:*` subagents (e.g. `agent-sdlc:senior-engineer`). Each entry must be a `.md` file path — a folder string like `"./plugin-agents"` fails validation — so add new files there to that list too (a unit test enforces it). Setting `agents` also turns off Claude Code's default `agents/` lookup, which is intended: `agents/` uses the Cursor `<role>/AGENT.md` layout.
 
 ### Claude Code in a vendored app repo
 

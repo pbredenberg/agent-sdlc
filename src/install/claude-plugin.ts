@@ -9,7 +9,7 @@ import {
   pathExists,
   removePath,
 } from "./copy-tree.js";
-import { commandsSourceDir, skillsSourceDir } from "./paths.js";
+import { commandsSourceDir, pluginAgentsSourceDir, skillsSourceDir } from "./paths.js";
 
 /**
  * Claude Code has no persistent, git-shareable "vendor a local copy" tier the
@@ -40,6 +40,10 @@ export function claudePluginVendorSkillsDir(targetRoot: string): string {
 
 export function claudePluginVendorCommandsDir(targetRoot: string): string {
   return join(claudePluginVendorRoot(targetRoot), "commands");
+}
+
+export function claudePluginVendorAgentsDir(targetRoot: string): string {
+  return join(claudePluginVendorRoot(targetRoot), "plugin-agents");
 }
 
 export type ClaudePluginManifest = {
@@ -73,10 +77,12 @@ export async function readClaudePluginManifest(
 }
 
 /**
- * Copies plugin.json + marketplace.json + skills (+ commands) into a
- * namespaced bundle under the target repo, mirroring this repo's own root
- * layout one level deeper so it never collides with the target's own
- * `skills/`, `commands/`, or `.claude-plugin/`. Returns false (no-op) if the
+ * Copies plugin.json + marketplace.json + plugin-agents + skills (+ commands)
+ * into a namespaced bundle under the target repo, mirroring this repo's own
+ * root layout one level deeper so it never collides with the target's own
+ * `skills/`, `commands/`, or `.claude-plugin/`. plugin-agents is copied in
+ * both modes because plugin.json's `agents` array lists each file by path and
+ * the manifest fails to load if any are missing. Returns false (no-op) if the
  * source has no `.claude-plugin/` at all.
  */
 export async function copyClaudePluginBundle(
@@ -93,6 +99,14 @@ export async function copyClaudePluginBundle(
   const manifestDestDir = claudePluginVendorManifestDir(targetRoot);
   await ensureDir(manifestDestDir, dryRun);
   await copyFilesByExtension(manifestSourceDir, manifestDestDir, ["json"], dryRun);
+  if (await pathExists(pluginAgentsSourceDir(sourceRoot))) {
+    await copyFilesByExtension(
+      pluginAgentsSourceDir(sourceRoot),
+      claudePluginVendorAgentsDir(targetRoot),
+      ["md"],
+      dryRun,
+    );
+  }
 
   if (options.minimal) {
     const skillDestDir = claudePluginVendorSkillsDir(targetRoot);
