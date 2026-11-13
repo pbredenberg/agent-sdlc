@@ -63,5 +63,6 @@ Agent runbook for the agent-sdlc repository — ships as both a Cursor plugin an
 - Use `/sdlc` for the full ticket-to-PR pipeline in Agent chat
 - **Cloud Agents:** if `/sdlc` is missing from the slash palette, type `/sdlc` in your prompt (the `sdlc-kit` rule applies) or attach the **sdlc** skill manually
 - Use `/execution-plan-dispatch` to advance numbered plans under `docs/execution-plans/`
+- Use `/agent-manager [owner/repo …]` (Claude Code) to run a multi-repo manager that dispatches background workers through `/sdlc` and merges green, decision-free PRs; repos can also come from an `## Agent manager` section in the target workspace's `AGENTS.md`
 - Use `/agents-md-author` to create or refresh AGENTS.md when scaffolding or when commands drift
 - Skill source of truth: `skills/` (copied to `.cursor/skills/` by install script)

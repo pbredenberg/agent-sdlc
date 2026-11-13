@@ -8,9 +8,10 @@ Cursor and Claude Code plugin that turns this multi-agent SDLC kit into an invok
 | --- | --- |
 | `/sdlc` | Runs the full SDLC pipeline against the **current** workspace (orchestrate → BA → architecture → context → QA → implement → validate → security/DevOps → PR) |
 | `/execution-plan-dispatch` | Dispatches numbered execution plans one plan per fresh agent |
+| `/agent-manager [owner/repo …]` | Multi-repo manager (Claude Code): status sweep across the listed repos, proposes a batch, spawns one background worker per plan/PR, gates on adversarial review + green CI, merges decision-free PRs, and asks you only for decisions. Repos come from the arguments or an `## Agent manager` section in `AGENTS.md` ([config](skills/agent-manager/references/config.md)) |
 | `/workflow-orchestrator-routing`, `/pr-packager`, … | Individual specialist skills (also listed under Customize → Skills) |
 
-`/sdlc` is slash-only (`disable-model-invocation: true`) so it runs when you invoke it, not because the model guessed the workflow.
+`/sdlc` and `/agent-manager` are slash-only (`disable-model-invocation: true`) so it runs when you invoke it, not because the model guessed the workflow.
 
 ## Layout
 
@@ -23,8 +24,10 @@ Cursor and Claude Code plugin that turns this multi-agent SDLC kit into an invok
   marketplace.json     # self-referential marketplace entry
 commands/
   sdlc.md              # /sdlc command
+  agent-manager.md     # /agent-manager command
 skills/
   sdlc/SKILL.md        # preferred slash surface for /sdlc
+  agent-manager/       # multi-repo manager skill + brief/status/config templates
   <skill>/             # plugin-discoverable specialists (single canonical copy)
 plugin-agents/         # Agent personas for both plugins (frontmatter + concise prompts)
 agents/                # Full role docs (AGENT.md) + vendoring/licensing provenance
