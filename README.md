@@ -8,6 +8,7 @@ Cursor and Claude Code plugin that turns this multi-agent SDLC kit into an invok
 | --- | --- |
 | `/sdlc` | Runs the full SDLC pipeline against the **current** workspace (orchestrate → BA → architecture → context → QA → implement → validate → security/DevOps → PR) |
 | `/execution-plan-dispatch` | Dispatches numbered execution plans one plan per fresh agent |
+| `/orchestrator-prompt` | Writes a paste-ready prompt that sets up an orchestrating agent for any repo (sources of truth, agent-sdlc pipeline, authority boundaries, open items), optionally around a first task |
 | `/workflow-orchestrator-routing`, `/pr-packager`, … | Individual specialist skills (also listed under Customize → Skills) |
 
 `/sdlc` is slash-only (`disable-model-invocation: true`) so it runs when you invoke it, not because the model guessed the workflow.
