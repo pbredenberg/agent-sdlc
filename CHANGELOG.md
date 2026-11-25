@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/pbredenberg/agent-sdlc/compare/v1.2.1...v1.3.0) (2026-11-25)
+
+
+### Features
+
+* add orchestrator-prompt skill ([2b4dbbf](https://github.com/pbredenberg/agent-sdlc/commit/2b4dbbf1ad3aa084dabe781c3b4833f258109e55))
+* add orchestrator-prompt skill ([9bce0c7](https://github.com/pbredenberg/agent-sdlc/commit/9bce0c75b0a404d2f8de048c012c3746dbd26fff))
+
 ## [1.2.1](https://github.com/pbredenberg/agent-sdlc/compare/v1.2.0...v1.2.1) (2026-10-27)
 
 
